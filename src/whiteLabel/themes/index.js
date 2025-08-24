@@ -8,6 +8,7 @@ export const themes = {
     secondaryColor: '#AC80DD',
     fontFamily: 'Arial, sans-serif',
     poweredBy: 'Seenti®',
+    segmento: 'Terapia Integrativa',  // NOVO CAMPO - Sprint 07
   },
   parceiroX: {
     name: 'Marcia Alves',
@@ -16,6 +17,7 @@ export const themes = {
     secondaryColor: '#f4f4f4',
     fontFamily: 'Roboto, sans-serif',
     poweredBy: 'Seenti®',
+    segmento: 'Terapia Integrativa',  // NOVO CAMPO - Sprint 07
   },
 };
 
