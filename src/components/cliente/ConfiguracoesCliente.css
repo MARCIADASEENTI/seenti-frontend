@@ -1,0 +1,299 @@
+/* ConfiguracoesCliente.css - Estilos específicos para a página de configurações */
+
+/* Animações de entrada */
+.config-card {
+  animation: slideInUp 0.6s ease-out;
+}
+
+.config-card:nth-child(1) { animation-delay: 0.1s; }
+.config-card:nth-child(2) { animation-delay: 0.2s; }
+.config-card:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Efeitos de hover nos cards */
+.config-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* Estilização dos switches */
+.switch-toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.switch-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 24px;
+}
+
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .switch-slider {
+  background-color: #3b82f6;
+}
+
+input:checked + .switch-slider:before {
+  transform: translateX(20px);
+}
+
+/* Estilização dos selects */
+.config-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+/* Efeitos de foco */
+.config-select:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+/* Estilização dos botões */
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.35);
+}
+
+.btn-secondary {
+  background: white;
+  border: 2px solid #e5e7eb;
+  color: #374151;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  border-color: #d1d5db;
+  background-color: #f9fafb;
+  transform: translateY(-1px);
+}
+
+/* Estilização das mensagens de status */
+.status-message {
+  animation: fadeIn 0.5s ease-in;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+}
+
+.status-message.success {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border: 1px solid #10b981;
+  color: #065f46;
+}
+
+.status-message.error {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border: 1px solid #ef4444;
+  color: #991b1b;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsividade para mobile */
+@media (max-width: 768px) {
+  .config-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .config-card {
+    margin-bottom: 16px;
+  }
+  
+  .btn-group {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .btn-group button {
+    width: 100%;
+  }
+}
+
+/* Estilização dos headers dos cards */
+.card-header {
+  background: linear-gradient(135deg, var(--start-color) 0%, var(--end-color) 100%);
+  padding: 20px 24px;
+  color: white;
+  border-radius: 12px 12px 0 0;
+}
+
+.card-header.blue {
+  --start-color: #3b82f6;
+  --end-color: #1d4ed8;
+}
+
+.card-header.green {
+  --start-color: #10b981;
+  --end-color: #059669;
+}
+
+.card-header.purple {
+  --start-color: #8b5cf6;
+  --end-color: #7c3aed;
+}
+
+/* Estilização dos itens de configuração */
+.config-item {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.config-item:hover {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.config-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Estilização dos labels dos selects */
+.select-label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Estilização dos selects com ícones */
+.select-with-icon {
+  position: relative;
+}
+
+.select-with-icon select {
+  padding-left: 40px;
+}
+
+.select-with-icon::before {
+  content: attr(data-icon);
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Animações de loading */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Efeitos de transição suaves */
+* {
+  transition: all 0.2s ease;
+}
+
+/* Estilização do header da página */
+.page-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 32px;
+  border-radius: 16px;
+  margin-bottom: 32px;
+  border: 1px solid #e2e8f0;
+}
+
+.page-header h1 {
+  background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Estilização dos ícones nos headers */
+.header-icon {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+}
+
+
+
+
