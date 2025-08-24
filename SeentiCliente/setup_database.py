@@ -24,14 +24,42 @@ def criar_indices():
         for indice in indices:
             try:
                 if isinstance(indice, dict):
-                    # Índice único
+                    # Verificar se deve ser único
                     campos = list(indice.keys())
-                    collection.create_index(
-                        [(campo, ASCENDING) for campo in campos],
-                        unique=True,
-                        name=f"idx_{colecao}_{'_'.join(campos)}"
-                    )
-                    print(f"  ✅ Índice único criado: {colecao}.{campos}")
+                    nome_indice = f"idx_{colecao}_{'_'.join(campos)}"
+                    
+                    # Apenas alguns índices devem ser únicos
+                    if colecao == "usuarios" and "email" in campos:
+                        # Email deve ser único por tenant
+                        collection.create_index(
+                            [(campo, ASCENDING) for campo in campos],
+                            unique=True,
+                            name=nome_indice
+                        )
+                        print(f"  ✅ Índice único criado: {nome_indice}")
+                    elif colecao == "clientes" and "cpf" in campos:
+                        # CPF deve ser único por tenant
+                        collection.create_index(
+                            [(campo, ASCENDING) for campo in campos],
+                            unique=True,
+                            name=nome_indice
+                        )
+                        print(f"  ✅ Índice único criado: {nome_indice}")
+                    elif colecao == "tenants" and "codigo" in campos:
+                        # Código do tenant deve ser único
+                        collection.create_index(
+                            [(campo, ASCENDING) for campo in campos],
+                            unique=True,
+                            name=nome_indice
+                        )
+                        print(f"  ✅ Índice único criado: {nome_indice}")
+                    else:
+                        # Índice simples (não único)
+                        collection.create_index(
+                            [(campo, ASCENDING) for campo in campos],
+                            name=nome_indice
+                        )
+                        print(f"  ✅ Índice criado: {nome_indice}")
                 else:
                     # Índice simples
                     collection.create_index(indice, ASCENDING)

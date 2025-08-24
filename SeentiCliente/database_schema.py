@@ -237,6 +237,13 @@ INDICES_MONGODB = {
         {"tenant_id": 1},
         {"status": 1}
     ],
+    "agendamentos": [
+        {"cliente_id": 1},  # múltiplos agendamentos por cliente
+        {"terapeuta_id": 1},  # múltiplos agendamentos por terapeuta
+        {"data": 1},  # ordenação por data
+        {"status": 1},  # filtro por status
+        {"tenant_id": 1}  # filtro por tenant
+    ],
     "tenants": [
         {"codigo": 1},  # único
         {"cnpj": 1}  # único
