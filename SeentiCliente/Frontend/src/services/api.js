@@ -11,8 +11,8 @@ const getApiBaseUrl = () => {
     if (port === '8080') {
       return 'http://10.0.0.167:5000';
     }
-    // Se estiver rodando direto na porta 5173, usar backend LOCAL
-    if (port === '5173') {
+    // Se estiver rodando direto na porta 3000 ou 5173, usar backend LOCAL
+    if (port === '3000' || port === '5173') {
       return 'http://localhost:5001';
     }
   }

@@ -1,6 +1,7 @@
 // src/components/cliente/PaginaCliente.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../hooks/useTheme';
 import api from '../../services/api';
 
 export default function PaginaCliente() {
@@ -9,6 +10,17 @@ export default function PaginaCliente() {
   const [loading, setLoading] = useState(true);
   const [mostrarDados, setMostrarDados] = useState(false);
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
+
+  // Estado do sistema de feedback
+  const [feedback, setFeedback] = useState({
+    avaliacao: 0,
+    comentarios: '',
+    enviado: false
+  });
+  const [enviandoFeedback, setEnviandoFeedback] = useState(false);
+  const [feedbackSucesso, setFeedbackSucesso] = useState('');
+  const [feedbackErro, setFeedbackErro] = useState('');
 
   useEffect(() => {
     const fetchCliente = async () => {
@@ -56,6 +68,88 @@ export default function PaginaCliente() {
 
   const handleNovaAnamnese = () => {
     navigate('/anamnese');
+  };
+
+  // Funções do sistema de feedback
+  const handleAvaliacao = (estrelas) => {
+    setFeedback(prev => ({
+      ...prev,
+      avaliacao: estrelas
+    }));
+  };
+
+  const handleComentariosChange = (e) => {
+    setFeedback(prev => ({
+      ...prev,
+      comentarios: e.target.value
+    }));
+  };
+
+  const handleEnviarFeedback = async () => {
+    // Validar se há avaliação
+    if (feedback.avaliacao === 0) {
+      setFeedbackErro('Por favor, selecione uma avaliação antes de enviar.');
+      setTimeout(() => setFeedbackErro(''), 5000);
+      return;
+    }
+
+    try {
+      setEnviandoFeedback(true);
+      setFeedbackErro('');
+      setFeedbackSucesso('');
+
+      const cliente_id = localStorage.getItem('cliente_id');
+      if (!cliente_id) {
+        setFeedbackErro('Cliente não autenticado. Faça login novamente.');
+        return;
+      }
+
+      const dadosFeedback = {
+        cliente_id: cliente_id,
+        avaliacao: feedback.avaliacao,
+        comentarios: feedback.comentarios,
+        data_envio: new Date().toISOString(),
+        tipo: 'experiencia_plataforma'
+      };
+
+      console.log('📤 Enviando feedback:', dadosFeedback);
+
+      // Enviar para o backend
+      const response = await api.post('/feedback', dadosFeedback);
+      
+      if (response.status === 201 || response.status === 200) {
+        setFeedbackSucesso('✅ Feedback enviado com sucesso! Obrigado por sua opinião.');
+        setFeedback(prev => ({
+          ...prev,
+          enviado: true
+        }));
+        
+        // Limpar mensagem de sucesso após 5 segundos
+        setTimeout(() => setFeedbackSucesso(''), 5000);
+        
+        console.log('✅ Feedback enviado com sucesso:', response.data);
+      } else {
+        throw new Error('Resposta inesperada do servidor');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao enviar feedback:', error);
+      setFeedbackErro('❌ Erro ao enviar feedback. Tente novamente.');
+      
+      // Limpar mensagem de erro após 5 segundos
+      setTimeout(() => setFeedbackErro(''), 5000);
+    } finally {
+      setEnviandoFeedback(false);
+    }
+  };
+
+  const resetarFeedback = () => {
+    setFeedback({
+      avaliacao: 0,
+      comentarios: '',
+      enviado: false
+    });
+    setFeedbackSucesso('');
+    setFeedbackErro('');
   };
 
   // Formatação
@@ -179,39 +273,94 @@ export default function PaginaCliente() {
               Ajude-nos a melhorar sua experiência na plataforma. Como está sendo sua jornada até agora?
             </p>
             
-            <div className="space-y-3 md:space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                <span className="text-xs md:text-sm text-gray-600 font-medium">Experiência geral:</span>
-                <div className="flex space-x-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      className="text-yellow-400 hover:text-yellow-500 text-base md:text-lg lg:text-xl transition-colors"
-                      title={`${star} estrela${star > 1 ? 's' : ''}`}
-                    >
-                      ⭐
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
-                  Comentários ou sugestões:
-                </label>
-                <textarea
-                  className="w-full p-2 md:p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-xs md:text-sm"
-                  rows="3"
-                  placeholder="Conte-nos como podemos melhorar..."
-                />
-              </div>
-              
-              <div className="flex justify-end">
-                <button className="px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs md:text-sm font-medium">
-                  Enviar Feedback
+            {feedback.enviado ? (
+              <div className="text-center py-4">
+                <div className="text-green-600 text-4xl mb-2">🎉</div>
+                <p className="text-green-700 font-medium mb-3">Obrigado pelo seu feedback!</p>
+                <button
+                  onClick={resetarFeedback}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                >
+                  Enviar Novo Feedback
                 </button>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                  <span className="text-xs md:text-sm text-gray-600 font-medium">Experiência geral:</span>
+                  <div className="flex space-x-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => handleAvaliacao(star)}
+                        className={`text-2xl md:text-3xl transition-all duration-200 hover:scale-110 ${
+                          feedback.avaliacao >= star 
+                            ? 'text-yellow-500' 
+                            : 'text-gray-300 hover:text-yellow-400'
+                        }`}
+                        title={`${star} estrela${star > 1 ? 's' : ''}`}
+                        disabled={enviandoFeedback}
+                      >
+                        {feedback.avaliacao >= star ? '⭐' : '☆'}
+                      </button>
+                    ))}
+                  </div>
+                  {feedback.avaliacao > 0 && (
+                    <span className="text-xs text-gray-500">
+                      ({feedback.avaliacao} estrela{feedback.avaliacao > 1 ? 's' : ''})
+                    </span>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                    Comentários ou sugestões:
+                  </label>
+                  <textarea
+                    value={feedback.comentarios}
+                    onChange={handleComentariosChange}
+                    className="w-full p-2 md:p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-xs md:text-sm"
+                    rows="3"
+                    placeholder="Conte-nos como podemos melhorar..."
+                    disabled={enviandoFeedback}
+                  />
+                </div>
+                
+                {/* Mensagens de feedback */}
+                {feedbackSucesso && (
+                  <div className="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-md text-sm">
+                    {feedbackSucesso}
+                  </div>
+                )}
+                
+                {feedbackErro && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+                    {feedbackErro}
+                  </div>
+                )}
+                
+                <div className="flex justify-end">
+                  <button 
+                    onClick={handleEnviarFeedback}
+                    disabled={enviandoFeedback || feedback.avaliacao === 0}
+                    className={`px-3 py-2 md:px-4 md:py-2 rounded-md transition-colors text-xs md:text-sm font-medium ${
+                      enviandoFeedback || feedback.avaliacao === 0
+                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {enviandoFeedback ? (
+                      <>
+                        <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                        Enviando...
+                      </>
+                    ) : (
+                      'Enviar Feedback'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
 
           <section
@@ -253,7 +402,7 @@ export default function PaginaCliente() {
               </button>
 
               <button
-                onClick={() => alert('Histórico - Em desenvolvimento para próxima sprint')}
+                onClick={() => navigate('/historico')}
                 className="p-3 md:p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 text-left group"
               >
                 <div className="flex items-center space-x-2 md:space-x-3">

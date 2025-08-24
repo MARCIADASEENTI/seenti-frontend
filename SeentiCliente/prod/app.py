@@ -15,7 +15,7 @@ import ssl
 print("🔐 RENDER - OpenSSL version usada:", ssl.OPENSSL_VERSION)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "https://frontend-seenti-app.vercel.app"]}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://localhost:5173", "https://frontend-seenti-app.vercel.app"]}}, supports_credentials=True)
 
 app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
@@ -26,12 +26,14 @@ usuarios = db["usuarios"]
 
 # --- Coleções ---
 usuarios = db["usuarios"]
-clientes = db["clientes"]
+clientes = db["usuarios"]
 anamneses = db["anamneses"]
 termos_uso = db["termos_uso"]
 progresso_usuario = db["progresso_usuario"]
 agendamentos = db["agendamentos"]
 terapeutas = db["terapeutas"]
+feedback = db["feedback"]
+sessoes = db["sessoes"]
 
 
 # --- LOGIN ---
@@ -786,6 +788,208 @@ def buscar_terapeutas_disponiveis():
     except Exception as e:
         print(f"Erro ao buscar terapeutas: {str(e)}")
         return jsonify({"erro": "Erro ao buscar terapeutas"}), 500
+
+# ===== SISTEMA DE FEEDBACK =====
+
+@app.route("/feedback", methods=["POST"])
+def criar_feedback():
+    """Cria novo feedback do cliente"""
+    try:
+        data = request.json or {}
+        
+        # Validar dados obrigatórios
+        cliente_id = data.get("cliente_id")
+        avaliacao = data.get("avaliacao")
+        
+        if not cliente_id or not avaliacao:
+            return jsonify({"erro": "cliente_id e avaliacao são obrigatórios"}), 400
+        
+        # Validar range da avaliação
+        if not isinstance(avaliacao, int) or avaliacao < 1 or avaliacao > 5:
+            return jsonify({"erro": "Avaliação deve ser um número inteiro entre 1 e 5"}), 400
+        
+        # Validar se o cliente existe
+        try:
+            cliente_obj_id = ObjectId(cliente_id)
+        except Exception:
+            return jsonify({"erro": "ID de cliente inválido"}), 400
+        
+        cliente_existe = clientes.find_one({"_id": cliente_obj_id})
+        if not cliente_existe:
+            return jsonify({"erro": "Cliente não encontrado"}), 404
+        
+        # Preparar dados do feedback
+        feedback_data = {
+            "cliente_id": cliente_obj_id,
+            "avaliacao": avaliacao,
+            "comentarios": data.get("comentarios", ""),
+            "data_envio": datetime.now(),
+            "tipo": data.get("tipo", "experiencia_plataforma"),
+            "status": "ativo",
+            "criado_em": datetime.now(),
+            "atualizado_em": datetime.now()
+        }
+        
+        # Inserir feedback no banco
+        resultado = feedback.insert_one(feedback_data)
+        
+        if not resultado.inserted_id:
+            return jsonify({"erro": "Erro ao salvar feedback"}), 500
+        
+        # Log de sucesso
+        print(f"✅ Feedback criado: Cliente {cliente_id}, Avaliação: {avaliacao}")
+        
+        # Retornar resposta de sucesso
+        feedback_criado = {
+            "id": str(resultado.inserted_id),
+            "cliente_id": cliente_id,
+            "avaliacao": avaliacao,
+            "comentarios": feedback_data["comentarios"],
+            "data_envio": feedback_data["data_envio"].isoformat(),
+            "tipo": feedback_data["tipo"],
+            "status": feedback_data["status"]
+        }
+        
+        return jsonify({
+            "success": True,
+            "message": "Feedback enviado com sucesso!",
+            "data": feedback_criado
+        }), 201
+        
+    except Exception as error:
+        print(f"❌ Erro ao criar feedback: {error}")
+        return jsonify({"erro": "Erro interno do servidor"}), 500
+
+@app.route("/feedback/cliente/<cliente_id>", methods=["GET"])
+def buscar_feedback_cliente(cliente_id):
+    """Busca feedback de um cliente específico"""
+    try:
+        # Validar ID do cliente
+        try:
+            cliente_obj_id = ObjectId(cliente_id)
+        except Exception:
+            return jsonify({"erro": "ID de cliente inválido"}), 400
+        
+        # Buscar feedback do cliente
+        feedback_lista = list(feedback.find({"cliente_id": cliente_obj_id}).sort("data_envio", -1))
+        
+        # Converter ObjectIds para string
+        for fb in feedback_lista:
+            fb["_id"] = str(fb["_id"])
+            fb["cliente_id"] = str(fb["cliente_id"])
+            fb["data_envio"] = fb["data_envio"].isoformat()
+            fb["criado_em"] = fb["criado_em"].isoformat()
+            fb["atualizado_em"] = fb["atualizado_em"].isoformat()
+        
+        # Log de sucesso
+        print(f"✅ Feedback do cliente {cliente_id} encontrado: {len(feedback_lista)} registros")
+        
+        return jsonify({
+            "success": True,
+            "message": "Feedback obtido com sucesso",
+            "data": feedback_lista
+        }), 200
+        
+    except Exception as error:
+        print(f"❌ Erro ao buscar feedback: {error}")
+        return jsonify({"erro": "Erro interno do servidor"}), 500
+
+@app.route("/feedback/estatisticas", methods=["GET"])
+def obter_estatisticas_feedback():
+    """Obtém estatísticas gerais de feedback"""
+    try:
+        # Contar total de feedbacks
+        total = feedback.count_documents({})
+        
+        # Calcular média de avaliação
+        pipeline = [
+            {"$group": {"_id": None, "media": {"$avg": "$avaliacao"}}}
+        ]
+        resultado_media = list(feedback.aggregate(pipeline))
+        media_avaliacao = round(resultado_media[0]["media"], 2) if resultado_media else 0
+        
+        # Contar por avaliação
+        pipeline_distribuicao = [
+            {"$group": {"_id": "$avaliacao", "count": {"$sum": 1}}},
+            {"$sort": {"_id": 1}}
+        ]
+        distribuicao = list(feedback.aggregate(pipeline_distribuicao))
+        
+        # Formatar distribuição
+        distribuicao_formatada = {str(i): 0 for i in range(1, 6)}
+        for item in distribuicao:
+            distribuicao_formatada[str(item["_id"])] = item["count"]
+        
+        estatisticas = {
+            "total": total,
+            "media_avaliacao": media_avaliacao,
+            "distribuicao": distribuicao_formatada
+        }
+        
+        # Log de sucesso
+        print(f"✅ Estatísticas de feedback obtidas: {total} total, média {media_avaliacao}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Estatísticas obtidas com sucesso",
+            "data": estatisticas
+        }), 200
+        
+    except Exception as error:
+        print(f"❌ Erro ao obter estatísticas: {error}")
+        return jsonify({"erro": "Erro interno do servidor"}), 500
+
+# ===== SISTEMA DE SESSÕES =====
+
+@app.route("/sessoes/cliente/<cliente_id>", methods=["GET"])
+def buscar_sessoes_cliente(cliente_id):
+    """Busca sessões de um cliente específico"""
+    try:
+        # Validar ID do cliente
+        try:
+            cliente_obj_id = ObjectId(cliente_id)
+        except Exception:
+            return jsonify({"erro": "ID de cliente inválido"}), 400
+        
+        # Verificar se o cliente existe
+        cliente_existe = clientes.find_one({"_id": cliente_obj_id})
+        if not cliente_existe:
+            return jsonify({"erro": "Cliente não encontrado"}), 404
+        
+        # Buscar sessões do cliente (por enquanto, vamos usar agendamentos como base)
+        # Em um sistema real, você teria uma coleção específica de sessões
+        agendamentos_cliente = list(agendamentos.find({
+            "cliente_id": cliente_obj_id,
+            "status": {"$in": ["realizada", "confirmada", "agendada"]}
+        }).sort("data", -1))
+        
+        # Converter para formato de sessões
+        sessoes_lista = []
+        for agendamento in agendamentos_cliente:
+            sessao = {
+                "_id": str(agendamento["_id"]),
+                "cliente_id": str(agendamento["cliente_id"]),
+                "terapeuta_id": str(agendamento["terapeuta_id"]) if "terapeuta_id" in agendamento else None,
+                "data_agendada": agendamento["data"].isoformat() if "data" in agendamento else None,
+                "horario": agendamento.get("horario", ""),
+                "status": agendamento["status"],
+                "observacoes": agendamento.get("observacoes", ""),
+                "tipo_sessao": "terapia_integrativa",
+                "duracao": "60",  # minutos
+                "valor": "150.00",  # reais
+                "criado_em": agendamento.get("data_criacao", datetime.now()).isoformat(),
+                "atualizado_em": agendamento.get("data_atualizacao", datetime.now()).isoformat()
+            }
+            sessoes_lista.append(sessao)
+        
+        # Log de sucesso
+        print(f"✅ Sessões do cliente {cliente_id} encontradas: {len(sessoes_lista)} registros")
+        
+        return jsonify(sessoes_lista), 200
+        
+    except Exception as error:
+        print(f"❌ Erro ao buscar sessões: {error}")
+        return jsonify({"erro": "Erro interno do servidor"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")

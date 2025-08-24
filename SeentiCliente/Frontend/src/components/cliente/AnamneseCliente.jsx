@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../hooks/useTheme';
 import { brand } from '@white/config/brandConfig';
 import api from '../../services/api';
 
 const AnamneseCliente = () => {
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
   const [loading, setLoading] = useState(false);
@@ -160,11 +162,26 @@ const AnamneseCliente = () => {
   return (
     <div className="max-w-4xl mx-auto mt-8 p-6">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-2" style={{ color: primaryColor }}>
-          📋 Formulário de Anamnese
-        </h2>
-        <p className="text-gray-600">Preencha todas as informações para um atendimento personalizado</p>
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            {/* Botão Voltar */}
+            <button
+              onClick={() => navigate('/perfil')}
+              className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center space-x-2"
+            >
+              <span>←</span>
+              <span>Voltar ao Perfil</span>
+            </button>
+            
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-2" style={{ color: primaryColor }}>
+                📋 Formulário de Anamnese
+              </h2>
+              <p className="text-gray-600">Preencha todas as informações para um atendimento personalizado</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Mensagens de erro ou sucesso */}
@@ -411,21 +428,13 @@ const AnamneseCliente = () => {
         </div>
 
         {/* Botões de Ação */}
-        <div className="flex flex-col sm:flex-row justify-between pt-6 gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/perfil')}
-            className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors text-base font-medium"
-          >
-            ← Voltar ao Perfil
-          </button>
-          
+        <div className="flex justify-end pt-6">
           <button
             type="submit"
             className="px-6 py-3 rounded-lg text-white transition-colors text-base font-medium"
             style={{ backgroundColor: primaryColor }}
             onMouseEnter={(e) => e.target.style.backgroundColor = secondaryColor}
-            onMouseLeave={(e) => e.target.style.backgroundColor = primaryColor}
+            onMouseLeave={(e) => e.target.style.backgroundColor = primaryColor }
             disabled={loading}
           >
             {loading ? (

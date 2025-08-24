@@ -1,11 +1,13 @@
 // src/components/cliente/AgendamentoCliente.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../hooks/useTheme';
 import { brand } from '@white/config/brandConfig';
 import api from '../../services/api';
 
 const AgendamentoCliente = () => {
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [erro, setErro] = useState('');
@@ -232,13 +234,24 @@ const AgendamentoCliente = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                📅 Meus Agendamentos
-              </h1>
-              <p className="mt-2 text-gray-600">
-                Gerencie suas solicitações de agendamento
-              </p>
+            <div className="flex items-center space-x-4">
+              {/* Botão Voltar */}
+              <button
+                onClick={() => navigate('/perfil')}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <span>←</span>
+                <span>Voltar ao Perfil</span>
+              </button>
+              
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  📅 Meus Agendamentos
+                </h1>
+                <p className="mt-2 text-gray-600">
+                  Gerencie suas solicitações de agendamento
+                </p>
+              </div>
             </div>
             
             <button

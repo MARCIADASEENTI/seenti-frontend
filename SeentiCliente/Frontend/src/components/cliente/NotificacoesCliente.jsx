@@ -195,16 +195,27 @@ const NotificacoesCliente = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                🔔 Notificações
-              </h1>
-              <p className="text-gray-600">
-                {totalNaoLidas > 0 
-                  ? `${totalNaoLidas} notificação${totalNaoLidas > 1 ? 'es' : ''} não lida${totalNaoLidas > 1 ? 's' : ''}`
-                  : 'Todas as notificações foram lidas'
-                }
-              </p>
+            <div className="flex items-center space-x-4">
+              {/* Botão Voltar */}
+              <button
+                onClick={() => navigate('/perfil')}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center space-x-2"
+              >
+                <span>←</span>
+                <span>Voltar ao Perfil</span>
+              </button>
+              
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  🔔 Notificações
+                </h1>
+                <p className="text-gray-600">
+                  {totalNaoLidas > 0 
+                    ? `${totalNaoLidas} notificação${totalNaoLidas > 1 ? 'es' : ''} não lida${totalNaoLidas > 1 ? 's' : ''}`
+                    : 'Todas as notificações foram lidas'
+                  }
+                </p>
+              </div>
             </div>
             
             <div className="flex space-x-3">
@@ -319,15 +330,7 @@ const NotificacoesCliente = () => {
           )}
         </div>
 
-        {/* Botão Voltar */}
-        <div className="mt-8">
-          <button
-            onClick={() => navigate('/perfil')}
-            className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium"
-          >
-            ← Voltar ao Perfil
-          </button>
-        </div>
+
       </div>
     </div>
   );

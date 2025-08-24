@@ -71,8 +71,9 @@ A Sprint 06 foi **100% concluída com sucesso**, implementando todas as funciona
   - Listagem e gerenciamento
   - Status "Aguarde o retorno do terapeuta"
   - Cancelamento e edição de observações
+  - **Botão de navegação** "Voltar ao Perfil" implementado
 - **Validação**: Sistema testado e funcionando
-- **Qualidade**: Interface clara e funcional
+- **Qualidade**: Interface clara e funcional com navegação intuitiva
 
 ---
 

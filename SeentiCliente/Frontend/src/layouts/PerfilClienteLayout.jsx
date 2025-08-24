@@ -2,12 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { brand } from '@white/config/brandConfig';
+import { useTheme } from '../hooks/useTheme';
 import './PerfilClienteLayout.css';
 
 export default function PerfilClienteLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { currentTheme, isDarkMode } = useTheme();
 
   // Debug: verificar se o layout está sendo renderizado
   useEffect(() => {

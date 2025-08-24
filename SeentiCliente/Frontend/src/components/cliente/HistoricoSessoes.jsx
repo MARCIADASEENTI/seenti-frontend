@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../hooks/useTheme';
 import { brand } from '@white/config/brandConfig';
 import api from '../../services/api';
 
 const HistoricoSessoes = () => {
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
   const [sessoes, setSessoes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
@@ -127,11 +129,26 @@ const HistoricoSessoes = () => {
   return (
     <div className="max-w-6xl mx-auto mt-8 p-6">
       {/* Header */}
-      <div className="mb-8 text-center">
-        <h2 className="text-3xl font-bold mb-2" style={{ color: primaryColor }}>
-          📅 Histórico de Sessões
-        </h2>
-        <p className="text-gray-600">Acompanhe todas as suas sessões de massoterapia</p>
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            {/* Botão Voltar */}
+            <button
+              onClick={() => navigate('/perfil')}
+              className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center space-x-2"
+            >
+              <span>←</span>
+              <span>Voltar ao Perfil</span>
+            </button>
+            
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-2" style={{ color: primaryColor }}>
+                📅 Histórico de Sessões
+              </h2>
+              <p className="text-gray-600">Acompanhe todas as suas sessões de massoterapia</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -297,15 +314,7 @@ const HistoricoSessoes = () => {
         </div>
       )}
 
-      {/* Botão voltar */}
-      <div className="mt-8 text-center">
-        <button
-          onClick={() => navigate('/perfil')}
-          className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors text-base font-medium"
-        >
-          ← Voltar ao Perfil
-        </button>
-      </div>
+
     </div>
   );
 };

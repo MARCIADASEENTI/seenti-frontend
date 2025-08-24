@@ -102,6 +102,24 @@ Todas as funcionalidades foram implementadas seguindo padrões de qualidade esta
 - **Modelo:** `Agendamento.js`
 - **Controller:** `agendamentoController.js`
 - **Rotas:** `agendamentoRoutes.js`
+- **API:** CRUD completo para agendamentos
+
+**Frontend:**
+- **Componente:** `AgendamentoCliente.jsx`
+- **Integração:** Menu lateral e rotas
+- **Navegação:** Botão "Voltar ao Perfil" implementado
+
+**Funcionalidades:**
+- Formulário de agendamento completo
+- Listagem e gerenciamento de agendamentos
+- Status "Aguarde o retorno do terapeuta"
+- Cancelamento e edição de observações
+- **Navegação intuitiva** com botão de retorno ao perfil
+
+**Backend:**
+- **Modelo:** `Agendamento.js`
+- **Controller:** `agendamentoController.js`
+- **Rotas:** `agendamentoRoutes.js`
 - **API:** CRUD para agendamentos
 
 **Frontend:**

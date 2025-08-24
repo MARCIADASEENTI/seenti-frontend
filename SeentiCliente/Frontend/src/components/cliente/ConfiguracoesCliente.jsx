@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { brand } from '@white/config/brandConfig';
 import { useTheme } from '../../hooks/useTheme';
 import api from '../../services/api';
+import './ConfiguracoesCliente.css';
 
 const ConfiguracoesCliente = () => {
   const navigate = useNavigate();
@@ -50,31 +51,41 @@ const ConfiguracoesCliente = () => {
           const dadosBackend = response.data;
           const configuracoesMapeadas = {
             // Notificações
-            notificacoes_email: dadosBackend.notificacoes?.email || true,
-            notificacoes_push: dadosBackend.notificacoes?.push || true,
-            notificacoes_agendamentos: dadosBackend.notificacoes?.agendamentos || true,
-            notificacoes_lembretes: dadosBackend.notificacoes?.lembretes || true,
-            notificacoes_promocoes: dadosBackend.notificacoes?.promocoes || false,
+            notificacoes_email: dadosBackend.notificacoes_email || true,
+            notificacoes_push: dadosBackend.notificacoes_push || true,
+            notificacoes_agendamentos: dadosBackend.notificacoes_agendamentos || true,
+            notificacoes_lembretes: dadosBackend.notificacoes_lembretes || true,
+            notificacoes_promocoes: dadosBackend.notificacoes_promocoes || false,
             
             // Privacidade
-            perfil_publico: dadosBackend.privacidade?.perfil_publico || false,
-            compartilhar_dados: dadosBackend.privacidade?.compartilhar_dados || false,
-            receber_contatos: dadosBackend.privacidade?.receber_contatos || false,
+            perfil_publico: dadosBackend.perfil_publico || false,
+            compartilhar_dados: dadosBackend.compartilhar_dados || false,
+            receber_contatos: dadosBackend.receber_contatos || false,
             
             // Preferências
-            idioma: dadosBackend.preferencias?.idioma || 'pt-BR',
-            tema: dadosBackend.preferencias?.tema || 'claro',
-            fuso_horario: dadosBackend.preferencias?.fuso_horario || 'America/Sao_Paulo'
+            idioma: dadosBackend.idioma || 'pt-BR',
+            tema: dadosBackend.tema || 'claro',
+            fuso_horario: dadosBackend.fuso_horario || 'America/Sao_Paulo'
           };
           
           setConfiguracoes(prev => ({ ...prev, ...configuracoesMapeadas }));
           console.log('✅ Configurações carregadas do backend:', configuracoesMapeadas);
           
-          // Aplicar tema se estiver nas configurações
-          if (configuracoesMapeadas.tema) {
-            applyTheme(configuracoesMapeadas.tema);
-            console.log('🎨 Tema aplicado ao carregar configurações:', configuracoesMapeadas.tema);
-          }
+            // Aplicar tema se estiver nas configurações E se não houver tema no localStorage
+  const temaLocalStorage = localStorage.getItem('user-theme');
+  console.log('🔍 Debug tema:', { 
+    temaBackend: configuracoesMapeadas.tema, 
+    temaLocalStorage, 
+    temaAtual: currentTheme 
+  });
+  
+  if (configuracoesMapeadas.tema && !temaLocalStorage) {
+    console.log('🎨 Tema encontrado nas configurações do backend (primeira vez):', configuracoesMapeadas.tema);
+    applyTheme(configuracoesMapeadas.tema);
+  } else if (temaLocalStorage) {
+    console.log('🎨 Usando tema do localStorage (prioridade):', temaLocalStorage);
+    applyTheme(temaLocalStorage);
+  }
         }
       } catch (error) {
         console.log('📋 Configurações não encontradas, usando padrões');
@@ -103,25 +114,69 @@ const ConfiguracoesCliente = () => {
         return;
       }
 
-      const response = await api.post(`/configuracoes/cliente/${cliente_id}`, configuracoes);
+      // Preparar dados para o backend (formato esperado pelo backend)
+      const dadosBackend = {
+        notificacoes_email: configuracoes.notificacoes_email,
+        notificacoes_push: configuracoes.notificacoes_push,
+        notificacoes_agendamentos: configuracoes.notificacoes_agendamentos,
+        notificacoes_lembretes: configuracoes.notificacoes_lembretes,
+        notificacoes_promocoes: configuracoes.notificacoes_promocoes,
+        perfil_publico: configuracoes.perfil_publico,
+        compartilhar_dados: configuracoes.compartilhar_dados,
+        receber_contatos: configuracoes.receber_contatos,
+        idioma: configuracoes.idioma,
+        tema: configuracoes.tema,
+        fuso_horario: configuracoes.fuso_horario
+      };
+
+      console.log('💾 Salvando configurações:', dadosBackend);
+
+      // Enviar para o backend
+      const response = await api.post(`/configuracoes/cliente/${cliente_id}`, dadosBackend);
       
       if (response.status === 200 || response.status === 201) {
         setSucesso('✅ Configurações salvas com sucesso!');
-        console.log('✅ Configurações salvas no backend:', response.data);
         
-        // Aplicar tema imediatamente após salvar
+        // Aplicar tema se foi alterado
         if (configuracoes.tema) {
+          console.log('🎨 Aplicando tema após salvar:', configuracoes.tema);
           applyTheme(configuracoes.tema);
-          console.log('🎨 Tema aplicado após salvar:', configuracoes.tema);
+          
+          // Salvar também no localStorage para persistência local
+          localStorage.setItem('user-theme', configuracoes.tema);
+          console.log('💾 Tema salvo no localStorage:', configuracoes.tema);
         }
         
+        // Limpar mensagem de sucesso após 3 segundos
         setTimeout(() => setSucesso(''), 3000);
+        
+        console.log('✅ Configurações salvas com sucesso:', response.data);
+      } else {
+        throw new Error('Resposta inesperada do servidor');
       }
     } catch (error) {
       console.error('❌ Erro ao salvar configurações:', error);
-      setErro('Erro ao salvar configurações. Tente novamente.');
+      setErro('❌ Erro ao salvar configurações. Tente novamente.');
+      
+      // Limpar mensagem de erro após 5 segundos
+      setTimeout(() => setErro(''), 5000);
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Atualizar configuração individual
+  const atualizarConfiguracao = (chave, valor) => {
+    setConfiguracoes(prev => ({
+      ...prev,
+      [chave]: valor
+    }));
+    
+    // Aplicar tema imediatamente se for alteração de tema
+    if (chave === 'tema') {
+      console.log('🎨 Tema alterado em tempo real:', valor);
+      applyTheme(valor);
+      localStorage.setItem('user-theme', valor);
     }
   };
 
@@ -129,72 +184,63 @@ const ConfiguracoesCliente = () => {
   const primaryColor = brand?.primaryColor || '#1E3A8A';
   const secondaryColor = brand?.secondaryColor || '#AC80DD';
 
-  // Atualizar configuração
-  const atualizarConfiguracao = (chave, valor) => {
-    setConfiguracoes(prev => ({
-      ...prev,
-      [chave]: valor
-    }));
-    
-    // Aplicar tema em tempo real se for alteração de tema
-    if (chave === 'tema') {
-      applyTheme(valor);
-      console.log('🎨 Tema alterado em tempo real:', valor);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando configurações...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando configurações...</p>
         </div>
       </div>
     );
   }
 
-  // Aplicar tema apenas ao conteúdo específico
-  const contentThemeClass = `user-theme-content theme-${currentTheme === 'escuro' ? 'escuro' : 'claro'}`;
-  
   return (
-    <div className={`min-h-screen bg-gray-50 py-8 ${contentThemeClass}`}>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            ⚙️ Configurações
-          </h1>
-          <p className="text-gray-600">
-            Personalize sua experiência no Seenti
-          </p>
+    <div className="min-h-screen bg-gray-50 py-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header da Página */}
+        <div className="page-header mb-8">
+          <div className="flex items-center space-x-3 mb-2">
+            <div className="header-icon">
+              <span>⚙️</span>
+            </div>
+            <h1 className="text-3xl font-bold">Configurações</h1>
+          </div>
+          <p className="text-lg text-gray-600">Personalize sua experiência no Seenti</p>
         </div>
 
         {/* Mensagens de Status */}
         {erro && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800">{erro}</p>
+          <div className="status-message error mb-6">
+            {erro}
           </div>
         )}
-
+        
         {sucesso && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-800">{sucesso}</p>
+          <div className="status-message success mb-6">
+            {sucesso}
           </div>
         )}
 
-        {/* Formulário de Configurações */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          {/* Seção: Notificações */}
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              🔔 Notificações
-            </h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Notificações por Email</h3>
-                  <p className="text-sm text-gray-500">Receber notificações importantes por email</p>
+        {/* Grid de Configurações */}
+        <div className="config-grid grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          
+          {/* Card: Notificações */}
+          <div className="config-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
+              <div className="flex items-center space-x-3">
+                <span className="text-white text-2xl">🔔</span>
+                <h2 className="text-xl font-semibold text-white">Notificações</h2>
+              </div>
+              <p className="text-blue-100 text-sm mt-1">Gerencie como você recebe informações</p>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              {/* Notificações por Email */}
+              <div className="config-item flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">📧 Email</h3>
+                  <p className="text-sm text-gray-600">Notificações importantes por email</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -207,10 +253,11 @@ const ConfiguracoesCliente = () => {
                 </label>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Notificações Push</h3>
-                  <p className="text-sm text-gray-500">Receber notificações no navegador</p>
+              {/* Notificações Push */}
+              <div className="config-item flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">📱 Push</h3>
+                  <p className="text-sm text-gray-600">Notificações no navegador</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -223,10 +270,11 @@ const ConfiguracoesCliente = () => {
                 </label>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Lembretes de Agendamento</h3>
-                  <p className="text-sm text-gray-500">Receber lembretes antes das consultas</p>
+              {/* Lembretes de Agendamento */}
+              <div className="config-item flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">📅 Agendamentos</h3>
+                  <p className="text-sm text-gray-600">Lembretes antes das consultas</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -239,10 +287,11 @@ const ConfiguracoesCliente = () => {
                 </label>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Lembretes Gerais</h3>
-                  <p className="text-sm text-gray-500">Receber lembretes de atividades</p>
+              {/* Lembretes Gerais */}
+              <div className="config-item flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">⏰ Lembretes</h3>
+                  <p className="text-sm text-gray-600">Lembretes de atividades</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -255,10 +304,11 @@ const ConfiguracoesCliente = () => {
                 </label>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Promoções e Ofertas</h3>
-                  <p className="text-sm text-gray-500">Receber ofertas especiais e promoções</p>
+              {/* Promoções */}
+              <div className="config-item flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">🎁 Promoções</h3>
+                  <p className="text-sm text-gray-600">Ofertas especiais e promoções</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -273,16 +323,22 @@ const ConfiguracoesCliente = () => {
             </div>
           </div>
 
-          {/* Seção: Privacidade */}
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              🔒 Privacidade
-            </h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Perfil Público</h3>
-                  <p className="text-sm text-gray-500">Permitir que outros usuários vejam seu perfil</p>
+          {/* Card: Privacidade */}
+          <div className="config-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4">
+              <div className="flex items-center space-x-3">
+                <span className="text-white text-2xl">🔒</span>
+                <h2 className="text-xl font-semibold text-white">Privacidade</h2>
+              </div>
+              <p className="text-green-100 text-sm mt-1">Controle sua visibilidade e dados</p>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              {/* Perfil Público */}
+              <div className="config-item flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">👤 Perfil Público</h3>
+                  <p className="text-sm text-gray-600">Outros usuários podem ver seu perfil</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -291,14 +347,15 @@ const ConfiguracoesCliente = () => {
                     checked={configuracoes.perfil_publico}
                     onChange={(e) => atualizarConfiguracao('perfil_publico', e.target.checked)}
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
                 </label>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Compartilhar Dados</h3>
-                  <p className="text-sm text-gray-500">Permitir compartilhamento de dados para pesquisa</p>
+              {/* Compartilhar Dados */}
+              <div className="config-item flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">📊 Compartilhar Dados</h3>
+                  <p className="text-sm text-gray-600">Dados para pesquisa científica</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -307,14 +364,15 @@ const ConfiguracoesCliente = () => {
                     checked={configuracoes.compartilhar_dados}
                     onChange={(e) => atualizarConfiguracao('compartilhar_dados', e.target.checked)}
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
                 </label>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900">Receber Contatos</h3>
-                  <p className="text-sm text-gray-500">Permitir que profissionais entrem em contato</p>
+              {/* Receber Contatos */}
+              <div className="config-item flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900">💬 Receber Contatos</h3>
+                  <p className="text-sm text-gray-600">Profissionais podem entrar em contato</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -323,61 +381,71 @@ const ConfiguracoesCliente = () => {
                     checked={configuracoes.receber_contatos}
                     onChange={(e) => atualizarConfiguracao('receber_contatos', e.target.checked)}
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
                 </label>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Seção: Preferências */}
+        {/* Card: Preferências (Largura Total) */}
+        <div className="config-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+          <div className="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4">
+            <div className="flex items-center space-x-3">
+              <span className="text-white text-2xl">🎨</span>
+              <h2 className="text-xl font-semibold text-white">Preferências</h2>
+            </div>
+            <p className="text-purple-100 text-sm mt-1">Personalize a aparência e comportamento</p>
+          </div>
+          
           <div className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              🎨 Preferências
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Idioma
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Idioma */}
+              <div className="space-y-2">
+                <label className="select-label">
+                  🌍 Idioma
                 </label>
                 <select
                   value={configuracoes.idioma}
                   onChange={(e) => atualizarConfiguracao('idioma', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50 hover:bg-white transition-colors"
                 >
-                  <option value="pt-BR">Português (Brasil)</option>
-                  <option value="en-US">English (US)</option>
-                  <option value="es-ES">Español</option>
+                  <option value="pt-BR">🇧🇷 Português (Brasil)</option>
+                  <option value="en-US">🇺🇸 English (US)</option>
+                  <option value="es-ES">🇪🇸 Español</option>
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tema
+              {/* Tema */}
+              <div className="space-y-2">
+                <label className="select-label">
+                  🌙 Tema
                 </label>
                 <select
                   value={configuracoes.tema}
                   onChange={(e) => atualizarConfiguracao('tema', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50 hover:bg-white transition-colors"
                 >
-                  <option value="claro">Claro</option>
-                  <option value="escuro">Escuro</option>
-                  <option value="auto">Automático</option>
+                  <option value="claro">☀️ Claro</option>
+                  <option value="escuro">🌙 Escuro</option>
+                  <option value="auto">🔄 Automático</option>
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fuso Horário
+              {/* Fuso Horário */}
+              <div className="space-y-2">
+                <label className="select-label">
+                  🕐 Fuso Horário
                 </label>
                 <select
                   value={configuracoes.fuso_horario}
                   onChange={(e) => atualizarConfiguracao('fuso_horario', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gray-50 hover:bg-white transition-colors"
                 >
-                  <option value="America/Sao_Paulo">São Paulo (GMT-3)</option>
-                  <option value="America/New_York">Nova York (GMT-5)</option>
-                  <option value="Europe/London">Londres (GMT+0)</option>
-                  <option value="Asia/Tokyo">Tóquio (GMT+9)</option>
+                  <option value="America/Sao_Paulo">🇧🇷 São Paulo (GMT-3)</option>
+                  <option value="America/New_York">🇺🇸 Nova York (GMT-5)</option>
+                  <option value="Europe/London">🇬🇧 Londres (GMT+0)</option>
+                  <option value="Asia/Tokyo">🇯🇵 Tóquio (GMT+9)</option>
                 </select>
               </div>
             </div>
@@ -385,28 +453,30 @@ const ConfiguracoesCliente = () => {
         </div>
 
         {/* Botões de Ação */}
-        <div className="mt-8 flex flex-col sm:flex-row gap-4">
+        <div className="btn-group flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+          {/* Botão Voltar */}
+          <button
+            onClick={() => navigate('/perfil')}
+            className="btn-secondary"
+          >
+            ← Voltar ao Perfil
+          </button>
+
+          {/* Botão Salvar */}
           <button
             onClick={salvarConfiguracoes}
             disabled={saving}
-            className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: primaryColor }}
           >
             {saving ? (
               <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                <div className="loading-spinner rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                 Salvando...
               </>
             ) : (
               '💾 Salvar Configurações'
             )}
-          </button>
-
-          <button
-            onClick={() => navigate('/perfil')}
-            className="flex-1 px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium"
-          >
-            ← Voltar ao Perfil
           </button>
         </div>
       </div>
