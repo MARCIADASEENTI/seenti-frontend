@@ -175,6 +175,7 @@ class SchemaTenant:
     telefone: str
     endereco: Dict
     configuracoes_visuais: Dict  # cores, logo, fontes
+    segmento: str = "Terapia Integrativa"  # NOVO CAMPO - Sprint 07
     ativo: bool = True
     data_criacao: datetime
     data_atualizacao: datetime

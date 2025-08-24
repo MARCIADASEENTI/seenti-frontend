@@ -87,6 +87,7 @@ def criar_tenant_padrao():
                     "termo_uso": "Termo de Consentimento e Uso - Seenti"
                 }
             },
+            "segmento": "Terapia Integrativa",  # NOVO CAMPO - Sprint 07
             "ativo": True,
             "data_criacao": datetime.now(),
             "data_atualizacao": datetime.now()
