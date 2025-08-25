@@ -268,3 +268,6 @@ const handleEnviarFeedback = async () => {
 ---
 
 *Documentação criada em 25/08/2025 - Sprint 07 - Tarefa 09*
+
+
+

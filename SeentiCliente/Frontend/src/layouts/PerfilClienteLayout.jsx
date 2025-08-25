@@ -188,17 +188,16 @@ export default function PerfilClienteLayout({ children }) {
     background: `linear-gradient(135deg, ${brand?.primaryColor || '#1E3A8A'}, ${brand?.secondaryColor || '#AC80DD'})`
   };
 
-  // ✅ NOVO: Estilos inline para forçar funcionalidade mobile
+        // ✅ NOVO: Estilos inline para forçar funcionalidade mobile
   const getSidebarStyle = () => {
     const isMobile = window.innerWidth <= 768;
     
     if (isMobile) {
       // ✅ FORÇAR estilos mobile - sobrescrever WhiteLabel
       return {
-        display: sidebarOpen ? 'flex' : 'none',
         position: 'fixed',
         top: 0,
-        left: 0,
+        left: sidebarOpen ? '0' : '-100%',
         width: '100%',
         maxWidth: '320px',
         height: '100vh',

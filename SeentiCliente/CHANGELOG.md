@@ -143,3 +143,6 @@
 ---
 
 *Changelog criado em 25/08/2025 - Sprint 07 - v1.0.0*
+
+
+
