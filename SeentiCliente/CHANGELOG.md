@@ -1,6 +1,25 @@
 # 📋 CHANGELOG - Sistema Seenti
 
+## [v1.1.0] - 2025-08-25
+
+### 🎉 **RELEASE SPRINT 07 - GIT FLOW IMPLEMENTADO**
+
+**Sistema Seenti Cliente com Git Flow completo e versionamento semântico!**
+
+---
+
+## 🚀 **NOVAS FUNCIONALIDADES**
+
+### **🌿 Git Flow e Versionamento Semântico**
+- ✅ Estrutura de branches padronizada
+- ✅ Workflow de desenvolvimento organizado
+- ✅ Sistema de versionamento v1.0.0 → v1.1.0
+- ✅ Scripts de automação Git Flow
+- ✅ Processo de release automatizado
+
 ## [v1.0.0] - 2025-08-25
+
+### 🎉 **RELEASE OFICIAL - SPRINT 07**
 
 ### 🎉 **RELEASE OFICIAL - SPRINT 07**
 
