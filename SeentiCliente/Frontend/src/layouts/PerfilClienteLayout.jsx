@@ -324,6 +324,10 @@ export default function PerfilClienteLayout({ children }) {
             <p className="text-xs text-white opacity-90 text-center leading-tight">
               © 2025 Seenti® - Todos os direitos reservados.
             </p>
+            {/* ✅ NOVO: Versão do sistema */}
+            <p className="text-xs text-white opacity-70 text-center leading-tight mt-1">
+              v1.0.0 - Sprint 07
+            </p>
           </div>
         </div>
       </aside>
@@ -403,6 +407,10 @@ export default function PerfilClienteLayout({ children }) {
               <div className="perfil-copyright">
                 <p className="text-xs text-white opacity-90 text-center leading-tight">
                   © 2025 Seenti® - Todos os direitos reservados.
+                </p>
+                {/* ✅ NOVO: Versão do sistema */}
+                <p className="text-xs text-white opacity-70 text-center leading-tight mt-1">
+                  v1.0.0 - Sprint 07
                 </p>
               </div>
             </div>

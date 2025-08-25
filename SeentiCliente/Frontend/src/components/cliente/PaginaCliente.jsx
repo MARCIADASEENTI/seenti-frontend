@@ -304,11 +304,17 @@ export default function PaginaCliente() {
 
       {cliente && (
         <>
-          <h2 className="text-lg md:text-xl lg:text-2xl font-semibold mb-3 md:mb-4 text-center text-green-700 px-2">
-            Olá, {cliente.primeiro_nome}! Bem-vindo(a) de volta à sua jornada de bem-estar! ✅
-            <br />
-            <span className="text-sm text-gray-500">Última atualização: {new Date().toLocaleTimeString('pt-BR')}</span>
-          </h2>
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">
+              Olá, {cliente?.nome?.toUpperCase()}! Bem-vindo(a) de volta à sua jornada de bem-estar! ✅
+            </h1>
+            <p className="text-gray-600 mb-2">Última atualização: {new Date().toLocaleTimeString()}</p>
+            {/* ✅ NOVO: Versão do sistema visível */}
+            <div className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+              <span className="mr-2">🚀</span>
+              Sistema Seenti v1.0.0 - Sprint 07
+            </div>
+          </div>
 
           {/* ✅ REMOVIDO: Seção de Status - Sprint 07 */}
 
