@@ -9,16 +9,29 @@ import os
 import re  # ✅ Adicionado para tratar CPF
 import sys
 
+# 🔐 INTEGRAÇÃO JWT
+import sys
+sys.path.append('/home/marcia/seenti_app')
+from jwt_integration import init_jwt_system
+
 load_dotenv()  # ✅ Carrega as variáveis do .env
 print(f"MONGO_URI: {os.getenv('MONGO_URI')}", file=sys.stderr)
 import ssl
 print("🔐 RENDER - OpenSSL version usada:", ssl.OPENSSL_VERSION)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://localhost:5173", "https://frontend-seenti-app.vercel.app"]}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "https://frontend-seenti-app.vercel.app"]}}, supports_credentials=True)
 
 app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+
+# 🔐 INICIALIZAR SISTEMA JWT
+try:
+    init_jwt_system(app)
+    print("✅ Sistema JWT integrado com sucesso!")
+except Exception as e:
+    print(f"❌ Erro ao integrar JWT: {e}")
+    print("⚠️ Aplicação continuará funcionando sem JWT")
 
 mongo = PyMongo(app)
 db = mongo.db
@@ -33,8 +46,7 @@ progresso_usuario = db["progresso_usuario"]
 agendamentos = db["agendamentos"]
 terapeutas = db["terapeutas"]
 configuracoes_clientes = db["configuracoes_clientes"]
-feedback = db["feedback"]
-sessoes = db["sessoes"]
+feedback = db["feedback"]  # ✅ NOVO: Coleção para feedback dos clientes
 
 
 # --- LOGIN ---
@@ -444,76 +456,38 @@ def criar_anamnese():
     if anamnese_existente:
         return jsonify({"erro": "Cliente já possui uma anamnese registrada"}), 409
 
-    # Validação dos campos obrigatórios
+    # Validação dos campos obrigatórios - NOVA ESTRUTURA Sprint 07
     campos_obrigatorios = [
-        "objetivo", "area_enfase", "dor_atual", "funcionamento_intestinal",
-        "stress_diario", "enxaqueca", "depressao", "insonia", "dor_mandibula",
-        "bruxismo", "disturbio_renal", "antecedente_oncologico", "pedra_rim",
-        "pedra_vesicula", "doenca_cronica", "email", "whatsapp"
+        "objetivo", "dor_atual", "nivel_dor"
     ]
     
     for campo in campos_obrigatorios:
         if campo not in dados_anamnese:
             return jsonify({"erro": f"Campo obrigatório '{campo}' não encontrado"}), 400
 
-    # Validação de tipos de dados
-    campos_booleanos = [
-        "enxaqueca", "depressao", "insonia", "dor_mandibula", "bruxismo",
-        "disturbio_renal", "antecedente_oncologico", "pedra_rim",
-        "pedra_vesicula", "doenca_cronica"
-    ]
-    
-    for campo in campos_booleanos:
-        if not isinstance(dados_anamnese[campo], bool):
-            return jsonify({"erro": f"Campo '{campo}' deve ser true ou false"}), 400
+    # Validação de tipos de dados - NOVA ESTRUTURA Sprint 07
+    if not isinstance(dados_anamnese["nivel_dor"], int) or dados_anamnese["nivel_dor"] < 0 or dados_anamnese["nivel_dor"] > 10:
+        return jsonify({"erro": "Nível de dor deve ser um número entre 0 e 10"}), 400
 
-    # Validação de email
-    email_regex = r'^[\w\.-]+@[\w\.-]+\.\w{2,}$'
-    if not re.match(email_regex, dados_anamnese["email"]):
-        return jsonify({"erro": "Formato de email inválido"}), 400
+    # Validação de funcionamento intestinal (nova estrutura)
+    if "habitos" in dados_anamnese and "funcionamento_intestinal" in dados_anamnese["habitos"]:
+        valores_validos_intestino = ["regular", "irregular"]
+        if dados_anamnese["habitos"]["funcionamento_intestinal"] not in valores_validos_intestino:
+            return jsonify({"erro": "Funcionamento intestinal deve ser: regular ou irregular"}), 400
 
-    # Validação de WhatsApp (formato brasileiro opcional)
-    whatsapp_regex = r'^\(?\d{2}\)? ?\d{4,5}-?\d{4}$'
-    if not re.match(whatsapp_regex, dados_anamnese["whatsapp"]):
-        return jsonify({"erro": "Formato de WhatsApp inválido. Use: (31) 99999-9999"}), 400
+    # Validação de alimentação (nova estrutura)
+    if "habitos" in dados_anamnese and "alimentacao" in dados_anamnese["habitos"]:
+        valores_validos_alimentacao = ["boa", "regular", "ruim"]
+        if dados_anamnese["habitos"]["alimentacao"] not in valores_validos_alimentacao:
+            return jsonify({"erro": "Alimentação deve ser: boa, regular ou ruim"}), 400
 
-    # Validação de funcionamento intestinal
-    valores_validos_intestino = ["normal", "preso", "solto"]
-    if dados_anamnese["funcionamento_intestinal"].lower() not in valores_validos_intestino:
-        return jsonify({"erro": "Funcionamento intestinal deve ser: normal, preso ou solto"}), 400
-
-    # Validação de stress diário
-    valores_validos_stress = ["baixo", "moderado", "alto"]
-    if dados_anamnese["stress_diario"].lower() not in valores_validos_stress:
-        return jsonify({"erro": "Stress diário deve ser: baixo, moderado ou alto"}), 400
-
-    # Preparar dados para inserção
+    # Preparar dados para inserção - NOVA ESTRUTURA Sprint 07
     anamnese_data = {
         "cliente_id": cliente_obj_id,
         "data_envio": datetime.now(),
-        "dados": {
-            "objetivo": dados_anamnese["objetivo"].strip(),
-            "area_enfase": dados_anamnese["area_enfase"].strip(),
-            "dor_atual": dados_anamnese["dor_atual"].strip(),
-            "funcionamento_intestinal": dados_anamnese["funcionamento_intestinal"].lower(),
-            "anticoncepcional": dados_anamnese.get("anticoncepcional", "").strip() or None,
-            "alimentacao": dados_anamnese.get("alimentacao", "").strip() or None,
-            "stress_diario": dados_anamnese["stress_diario"].lower(),
-            "enxaqueca": dados_anamnese["enxaqueca"],
-            "depressao": dados_anamnese["depressao"],
-            "insonia": dados_anamnese["insonia"],
-            "dor_mandibula": dados_anamnese["dor_mandibula"],
-            "bruxismo": dados_anamnese["bruxismo"],
-            "disturbio_renal": dados_anamnese["disturbio_renal"],
-            "antecedente_oncologico": dados_anamnese["antecedente_oncologico"],
-            "pedra_rim": dados_anamnese["pedra_rim"],
-            "pedra_vesicula": dados_anamnese["pedra_vesicula"],
-            "doenca_cronica": dados_anamnese["doenca_cronica"],
-            "observacoes_saude": dados_anamnese.get("observacoes_saude", "").strip() or None,
-            "nao_gosta_massagem_em": dados_anamnese.get("nao_gosta_massagem_em", "").strip() or None,
-            "email": dados_anamnese["email"].strip(),
-            "whatsapp": dados_anamnese["whatsapp"].strip()
-        }
+        "dados": dados_anamnese,  # Salvar estrutura completa como enviada
+        "registrado_por": cliente_obj_id,  # Cliente preenchendo para si mesmo
+        "tenant_id": "default"  # Será ajustado conforme implementação
     }
     
     resultado = anamneses.insert_one(anamnese_data)
@@ -529,11 +503,17 @@ def buscar_anamnese(cliente_id):
     except Exception:
         return jsonify({"erro": "ID de cliente inválido"}), 400
 
-    resultado = list(anamneses.find({"cliente_id": obj_id}))
-    for doc in resultado:
-        doc["_id"] = str(doc["_id"])
-        doc["cliente_id"] = str(doc["cliente_id"])
-    return jsonify(resultado), 200
+    # Buscar anamnese específica do cliente (deve ser única)
+    anamnese = anamneses.find_one({"cliente_id": obj_id})
+    
+    if not anamnese:
+        return jsonify({"erro": "Anamnese não encontrada"}), 404
+    
+    # Converter ObjectId para string
+    anamnese["_id"] = str(anamnese["_id"])
+    anamnese["cliente_id"] = str(anamnese["cliente_id"])
+    
+    return jsonify(anamnese), 200
 
 # --- PROGRESSO USUÁRIO ---
 @app.route("/progresso_usuario", methods=["POST"])
@@ -1063,6 +1043,27 @@ def deletar_configuracoes_cliente(cliente_id):
 
 # ===== SISTEMA DE AGENDAMENTOS =====
 
+# ✅ NOVO: Função para criar notificações automáticas
+def criar_notificacao_automatica(cliente_id, tipo, titulo, mensagem):
+    """Cria notificação automática para o cliente"""
+    try:
+        notificacao = {
+            "cliente_id": ObjectId(cliente_id),
+            "tipo": tipo,
+            "titulo": titulo,
+            "mensagem": mensagem,
+            "status": "nao_lida",
+            "criado_em": datetime.now(),
+            "automatica": True
+        }
+        
+        resultado = db["notificacoes_clientes"].insert_one(notificacao)
+        print(f"🔔 Notificação automática criada: {titulo} para cliente {cliente_id}")
+        return resultado.inserted_id
+    except Exception as e:
+        print(f"❌ Erro ao criar notificação automática: {e}")
+        return None
+
 @app.route("/agendamentos/cliente/<cliente_id>", methods=["POST"])
 def criar_agendamento_cliente(cliente_id):
     """Cria nova solicitação de agendamento para um cliente"""
@@ -1121,6 +1122,16 @@ def criar_agendamento_cliente(cliente_id):
 
     resultado = agendamentos.insert_one(novo_agendamento)
     novo_agendamento["_id"] = resultado.inserted_id
+
+    # ✅ NOVO: Criar notificação automática para o cliente
+    data_formatada = data.strftime("%d/%m/%Y")
+    hora_formatada = hora_solicitada
+    criar_notificacao_automatica(
+        cliente_id=cliente_id,
+        tipo="agendamento",
+        titulo="📅 Agendamento Solicitado",
+        mensagem=f"Sua solicitação de agendamento para {data_formatada} às {hora_formatada} foi recebida e está sendo analisada pelo terapeuta. Você receberá uma confirmação em breve."
+    )
 
     # Log de sucesso
     print(f"✅ Agendamento criado para cliente {cliente_id}:", novo_agendamento["_id"])
@@ -1270,6 +1281,87 @@ def atualizar_observacoes_agendamento(agendamento_id):
         "agendamento_id": agendamento_id
     }), 200
 
+# ✅ NOVO: Rota para reagendamento
+@app.route("/agendamentos/<agendamento_id>/reagendar", methods=["PATCH"])
+def reagendar_agendamento(agendamento_id):
+    """Permite reagendar um agendamento existente"""
+    try:
+        obj_id = ObjectId(agendamento_id)
+    except Exception:
+        return jsonify({"erro": "ID de agendamento inválido"}), 400
+
+    # Buscar o agendamento
+    agendamento = agendamentos.find_one({"_id": obj_id})
+    if not agendamento:
+        return jsonify({"erro": "Agendamento não encontrado"}), 404
+
+    dados = request.json or {}
+    nova_data = dados.get("nova_data")
+    nova_hora = dados.get("nova_hora")
+
+    if not nova_data or not nova_hora:
+        return jsonify({"erro": "Nova data e hora são obrigatórias"}), 400
+
+    # Validar formato da data
+    try:
+        data = datetime.fromisoformat(nova_data.replace('Z', '+00:00'))
+        if data < datetime.now():
+            return jsonify({"erro": "Não é possível reagendar para datas passadas"}), 400
+    except ValueError:
+        return jsonify({"erro": "Formato de data inválido"}), 400
+
+    # Validar formato da hora (HH:MM)
+    if not re.match(r'^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$', nova_hora):
+        return jsonify({"erro": "Formato de hora inválido. Use HH:MM"}), 400
+
+    # Verificar se não há conflito de horário para o mesmo cliente
+    conflito = agendamentos.find_one({
+        "_id": {"$ne": obj_id},  # Excluir o agendamento atual
+        "cliente_id": agendamento["cliente_id"],
+        "data_solicitada": data,
+        "hora_solicitada": nova_hora,
+        "status": {"$in": ["pendente", "confirmado"]}
+    })
+
+    if conflito:
+        return jsonify({"erro": "Já existe um agendamento para esta data e horário"}), 400
+
+    # Atualizar o agendamento
+    resultado = agendamentos.update_one(
+        {"_id": obj_id},
+        {
+            "$set": {
+                "data_solicitada": data,
+                "hora_solicitada": nova_hora,
+                "atualizado_em": datetime.now(),
+                "status": "pendente"  # Volta para pendente para aprovação
+            }
+        }
+    )
+
+    if resultado.modified_count == 0:
+        return jsonify({"erro": "Erro ao reagendar agendamento"}), 500
+
+    # ✅ NOVO: Criar notificação automática de reagendamento
+    data_formatada = data.strftime("%d/%m/%Y")
+    hora_formatada = nova_hora
+    criar_notificacao_automatica(
+        cliente_id=str(agendamento["cliente_id"]),
+        tipo="agendamento",
+        titulo="🔄 Agendamento Reagendado",
+        mensagem=f"Seu agendamento foi reagendado para {data_formatada} às {hora_formatada}. Aguarde a confirmação do terapeuta."
+    )
+
+    # Log de sucesso
+    print(f"✅ Agendamento {agendamento_id} reagendado para {nova_data} {nova_hora}")
+
+    return jsonify({
+        "mensagem": "Agendamento reagendado com sucesso!",
+        "agendamento_id": agendamento_id,
+        "nova_data": nova_data,
+        "nova_hora": nova_hora
+    }), 200
+
 # ===== ROTAS PARA TERAPEUTAS (PRÓXIMA SPRINT) =====
 
 @app.route("/agendamentos/pendentes", methods=["GET"])
@@ -1350,6 +1442,16 @@ def confirmar_agendamento(agendamento_id):
     if resultado.modified_count == 0:
         return jsonify({"erro": "Erro ao confirmar agendamento"}), 500
 
+    # ✅ NOVO: Criar notificação automática de confirmação
+    data_formatada = agendamento["data_solicitada"].strftime("%d/%m/%Y")
+    hora_formatada = agendamento["hora_solicitada"]
+    criar_notificacao_automatica(
+        cliente_id=str(agendamento["cliente_id"]),
+        tipo="agendamento",
+        titulo="✅ Agendamento Confirmado!",
+        mensagem=f"Seu agendamento para {data_formatada} às {hora_formatada} foi confirmado! O terapeuta está aguardando você. Chegue com 10 minutos de antecedência."
+    )
+
     # Log de sucesso
     print(f"✅ Agendamento {agendamento_id} confirmado pelo terapeuta {terapeuta_id}")
 
@@ -1402,6 +1504,16 @@ def rejeitar_agendamento(agendamento_id):
     if resultado.modified_count == 0:
         return jsonify({"erro": "Erro ao rejeitar agendamento"}), 500
 
+    # ✅ NOVO: Criar notificação automática de rejeição
+    data_formatada = agendamento["data_solicitada"].strftime("%d/%m/%Y")
+    hora_formatada = agendamento["hora_solicitada"]
+    criar_notificacao_automatica(
+        cliente_id=str(agendamento["cliente_id"]),
+        tipo="agendamento",
+        titulo="❌ Agendamento Não Confirmado",
+        mensagem=f"Infelizmente seu agendamento para {data_formatada} às {hora_formatada} não pôde ser confirmado. Motivo: {motivo}. Entre em contato para reagendar."
+    )
+
     # Log de sucesso
     print(f"✅ Agendamento {agendamento_id} rejeitado pelo terapeuta {terapeuta_id}")
 
@@ -1409,6 +1521,160 @@ def rejeitar_agendamento(agendamento_id):
         "mensagem": "Agendamento rejeitado com sucesso",
         "agendamento_id": agendamento_id
     }), 200
+
+# ===== SISTEMA DE FEEDBACK =====
+
+@app.route("/feedback", methods=["POST"])
+def criar_feedback():
+    """Cria um novo feedback do cliente"""
+    try:
+        data = request.json or {}
+        
+        # Validar dados obrigatórios
+        cliente_id = data.get("cliente_id")
+        rating = data.get("rating")
+        comentarios = data.get("comentarios", "")
+        
+        if not cliente_id:
+            return jsonify({"erro": "ID do cliente é obrigatório"}), 400
+            
+        if not rating or not isinstance(rating, int) or rating < 1 or rating > 5:
+            return jsonify({"erro": "Rating deve ser um número de 1 a 5"}), 400
+        
+        # Validar se o cliente existe
+        try:
+            cliente_obj_id = ObjectId(cliente_id)
+        except Exception:
+            return jsonify({"erro": "ID do cliente inválido"}), 400
+            
+        cliente_existente = clientes.find_one({"_id": cliente_obj_id})
+        if not cliente_existente:
+            return jsonify({"erro": "Cliente não encontrado"}), 404
+        
+        # Criar o feedback
+        feedback_data = {
+            "cliente_id": cliente_obj_id,
+            "rating": rating,
+            "comentarios": comentarios,
+            "criado_em": datetime.now(),
+            "atualizado_em": datetime.now()
+        }
+        
+        resultado = feedback.insert_one(feedback_data)
+        
+        if not resultado.inserted_id:
+            return jsonify({"erro": "Erro ao criar feedback"}), 500
+        
+        # Log de sucesso
+        print(f"✅ Feedback criado com sucesso para cliente {cliente_id}")
+        
+        return jsonify({
+            "mensagem": "Feedback enviado com sucesso!",
+            "feedback_id": str(resultado.inserted_id),
+            "rating": rating,
+            "comentarios": comentarios
+        }), 201
+        
+    except Exception as error:
+        print(f"❌ Erro ao criar feedback: {error}")
+        return jsonify({"erro": "Erro interno do servidor"}), 500
+
+@app.route("/feedback/cliente/<cliente_id>", methods=["GET"])
+def buscar_feedback_cliente(cliente_id):
+    """Busca feedback de um cliente específico"""
+    try:
+        # Validar ID do cliente
+        try:
+            cliente_obj_id = ObjectId(cliente_id)
+        except Exception:
+            return jsonify({"erro": "ID do cliente inválido"}), 400
+        
+        # Buscar feedback do cliente
+        feedbacks_cliente = list(feedback.find({"cliente_id": cliente_obj_id}).sort("criado_em", -1))
+        
+        # Converter ObjectIds para string
+        for fb in feedbacks_cliente:
+            fb["_id"] = str(fb["_id"])
+            fb["cliente_id"] = str(fb["cliente_id"])
+            fb["criado_em"] = fb["criado_em"].isoformat()
+            fb["atualizado_em"] = fb["atualizado_em"].isoformat()
+        
+        # Log de sucesso
+        print(f"✅ {len(feedbacks_cliente)} feedback(s) encontrado(s) para cliente {cliente_id}")
+        
+        return jsonify({
+            "mensagem": "Feedbacks encontrados com sucesso",
+            "feedbacks": feedbacks_cliente,
+            "total": len(feedbacks_cliente)
+        }), 200
+        
+    except Exception as error:
+        print(f"❌ Erro ao buscar feedback: {error}")
+        return jsonify({"erro": "Erro interno do servidor"}), 500
+
+@app.route("/feedback/estatisticas", methods=["GET"])
+def obter_estatisticas_feedback():
+    """Obtém estatísticas gerais dos feedbacks"""
+    try:
+        total = feedback.count_documents({})
+        
+        if total == 0:
+            return jsonify({
+                "mensagem": "Nenhum feedback encontrado",
+                "estatisticas": {
+                    "total": 0,
+                    "media_rating": 0,
+                    "distribuicao": {},
+                    "total_comentarios": 0
+                }
+            }), 200
+        
+        # Calcular média de rating
+        pipeline = [
+            {"$group": {
+                "_id": None,
+                "media_rating": {"$avg": "$rating"},
+                "total_comentarios": {"$sum": {"$cond": [{"$ne": ["$comentarios", ""]}, 1, 0]}}
+            }}
+        ]
+        
+        resultado = list(feedback.aggregate(pipeline))
+        if resultado:
+            media_rating = round(resultado[0]["media_rating"], 1)
+            total_comentarios = resultado[0]["total_comentarios"]
+        else:
+            media_rating = 0
+            total_comentarios = 0
+        
+        # Distribuição de ratings
+        pipeline_distribuicao = [
+            {"$group": {"_id": "$rating", "count": {"$sum": 1}}},
+            {"$sort": {"_id": 1}}
+        ]
+        
+        distribuicao_resultado = list(feedback.aggregate(pipeline_distribuicao))
+        distribuicao = {}
+        for item in distribuicao_resultado:
+            distribuicao[str(item["_id"])] = item["count"]
+        
+        estatisticas = {
+            "total": total,
+            "media_rating": media_rating,
+            "distribuicao": distribuicao,
+            "total_comentarios": total_comentarios
+        }
+        
+        # Log de sucesso
+        print(f"✅ Estatísticas de feedback obtidas: {total} total, média {media_rating}")
+        
+        return jsonify({
+            "mensagem": "Estatísticas obtidas com sucesso",
+            "estatisticas": estatisticas
+        }), 200
+        
+    except Exception as error:
+        print(f"❌ Erro ao obter estatísticas de feedback: {error}")
+        return jsonify({"erro": "Erro interno do servidor"}), 500
 
 # ===== ROTAS UTILITÁRIAS =====
 
@@ -1468,208 +1734,6 @@ def obter_estatisticas_agendamentos():
 
     except Exception as error:
         print(f"❌ Erro ao obter estatísticas: {error}")
-        return jsonify({"erro": "Erro interno do servidor"}), 500
-
-# ===== SISTEMA DE FEEDBACK =====
-
-@app.route("/feedback", methods=["POST"])
-def criar_feedback():
-    """Cria novo feedback do cliente"""
-    try:
-        data = request.json or {}
-        
-        # Validar dados obrigatórios
-        cliente_id = data.get("cliente_id")
-        avaliacao = data.get("avaliacao")
-        
-        if not cliente_id or not avaliacao:
-            return jsonify({"erro": "cliente_id e avaliacao são obrigatórios"}), 400
-        
-        # Validar range da avaliação
-        if not isinstance(avaliacao, int) or avaliacao < 1 or avaliacao > 5:
-            return jsonify({"erro": "Avaliação deve ser um número inteiro entre 1 e 5"}), 400
-        
-        # Validar se o cliente existe
-        try:
-            cliente_obj_id = ObjectId(cliente_id)
-        except Exception:
-            return jsonify({"erro": "ID de cliente inválido"}), 400
-        
-        cliente_existe = clientes.find_one({"_id": cliente_obj_id})
-        if not cliente_existe:
-            return jsonify({"erro": "Cliente não encontrado"}), 404
-        
-        # Preparar dados do feedback
-        feedback_data = {
-            "cliente_id": cliente_obj_id,
-            "avaliacao": avaliacao,
-            "comentarios": data.get("comentarios", ""),
-            "data_envio": datetime.now(),
-            "tipo": data.get("tipo", "experiencia_plataforma"),
-            "status": "ativo",
-            "criado_em": datetime.now(),
-            "atualizado_em": datetime.now()
-        }
-        
-        # Inserir feedback no banco
-        resultado = feedback.insert_one(feedback_data)
-        
-        if not resultado.inserted_id:
-            return jsonify({"erro": "Erro ao salvar feedback"}), 500
-        
-        # Log de sucesso
-        print(f"✅ Feedback criado: Cliente {cliente_id}, Avaliação: {avaliacao}")
-        
-        # Retornar resposta de sucesso
-        feedback_criado = {
-            "id": str(resultado.inserted_id),
-            "cliente_id": cliente_id,
-            "avaliacao": avaliacao,
-            "comentarios": feedback_data["comentarios"],
-            "data_envio": feedback_data["data_envio"].isoformat(),
-            "tipo": feedback_data["tipo"],
-            "status": feedback_data["status"]
-        }
-        
-        return jsonify({
-            "success": True,
-            "message": "Feedback enviado com sucesso!",
-            "data": feedback_criado
-        }), 201
-        
-    except Exception as error:
-        print(f"❌ Erro ao criar feedback: {error}")
-        return jsonify({"erro": "Erro interno do servidor"}), 500
-
-@app.route("/feedback/cliente/<cliente_id>", methods=["GET"])
-def buscar_feedback_cliente(cliente_id):
-    """Busca feedback de um cliente específico"""
-    try:
-        # Validar ID do cliente
-        try:
-            cliente_obj_id = ObjectId(cliente_id)
-        except Exception:
-            return jsonify({"erro": "ID de cliente inválido"}), 400
-        
-        # Buscar feedback do cliente
-        feedback_lista = list(feedback.find({"cliente_id": cliente_obj_id}).sort("data_envio", -1))
-        
-        # Converter ObjectIds para string
-        for fb in feedback_lista:
-            fb["_id"] = str(fb["_id"])
-            fb["cliente_id"] = str(fb["cliente_id"])
-            fb["data_envio"] = fb["data_envio"].isoformat()
-            fb["criado_em"] = fb["criado_em"].isoformat()
-            fb["atualizado_em"] = fb["atualizado_em"].isoformat()
-        
-        # Log de sucesso
-        print(f"✅ Feedback do cliente {cliente_id} encontrado: {len(feedback_lista)} registros")
-        
-        return jsonify({
-            "success": True,
-            "message": "Feedback obtido com sucesso",
-            "data": feedback_lista
-        }), 200
-        
-    except Exception as error:
-        print(f"❌ Erro ao buscar feedback: {error}")
-        return jsonify({"erro": "Erro interno do servidor"}), 500
-
-@app.route("/feedback/estatisticas", methods=["GET"])
-def obter_estatisticas_feedback():
-    """Obtém estatísticas gerais de feedback"""
-    try:
-        # Contar total de feedbacks
-        total = feedback.count_documents({})
-        
-        # Calcular média de avaliação
-        pipeline = [
-            {"$group": {"_id": None, "media": {"$avg": "$avaliacao"}}}
-        ]
-        resultado_media = list(feedback.aggregate(pipeline))
-        media_avaliacao = round(resultado_media[0]["media"], 2) if resultado_media else 0
-        
-        # Contar por avaliação
-        pipeline_distribuicao = [
-            {"$group": {"_id": "$avaliacao", "count": {"$sum": 1}}},
-            {"$sort": {"_id": 1}}
-        ]
-        distribuicao = list(feedback.aggregate(pipeline_distribuicao))
-        
-        # Formatar distribuição
-        distribuicao_formatada = {str(i): 0 for i in range(1, 6)}
-        for item in distribuicao:
-            distribuicao_formatada[str(item["_id"])] = item["count"]
-        
-        estatisticas = {
-            "total": total,
-            "media_avaliacao": media_avaliacao,
-            "distribuicao": distribuicao_formatada
-        }
-        
-        # Log de sucesso
-        print(f"✅ Estatísticas de feedback obtidas: {total} total, média {media_avaliacao}")
-        
-        return jsonify({
-            "success": True,
-            "message": "Estatísticas obtidas com sucesso",
-            "data": estatisticas
-        }), 200
-        
-    except Exception as error:
-        print(f"❌ Erro ao obter estatísticas: {error}")
-        return jsonify({"erro": "Erro interno do servidor"}), 500
-
-# ===== SISTEMA DE SESSÕES =====
-
-@app.route("/sessoes/cliente/<cliente_id>", methods=["GET"])
-def buscar_sessoes_cliente(cliente_id):
-    """Busca sessões de um cliente específico"""
-    try:
-        # Validar ID do cliente
-        try:
-            cliente_obj_id = ObjectId(cliente_id)
-        except Exception:
-            return jsonify({"erro": "ID de cliente inválido"}), 400
-        
-        # Verificar se o cliente existe
-        cliente_existe = clientes.find_one({"_id": cliente_obj_id})
-        if not cliente_existe:
-            return jsonify({"erro": "Cliente não encontrado"}), 404
-        
-        # Buscar sessões do cliente (por enquanto, vamos usar agendamentos como base)
-        # Em um sistema real, você teria uma coleção específica de sessões
-        agendamentos_cliente = list(agendamentos.find({
-            "cliente_id": cliente_obj_id,
-            "status": {"$in": ["realizada", "confirmada", "agendada"]}
-        }).sort("data", -1))
-        
-        # Converter para formato de sessões
-        sessoes_lista = []
-        for agendamento in agendamentos_cliente:
-            sessao = {
-                "_id": str(agendamento["_id"]),
-                "cliente_id": str(agendamento["cliente_id"]),
-                "terapeuta_id": str(agendamento["terapeuta_id"]) if "terapeuta_id" in agendamento else None,
-                "data_agendada": agendamento["data"].isoformat() if "data" in agendamento else None,
-                "horario": agendamento.get("horario", ""),
-                "status": agendamento["status"],
-                "observacoes": agendamento.get("observacoes", ""),
-                "tipo_sessao": "terapia_integrativa",
-                "duracao": "60",  # minutos
-                "valor": "150.00",  # reais
-                "criado_em": agendamento.get("data_criacao", datetime.now()).isoformat(),
-                "atualizado_em": agendamento.get("data_atualizacao", datetime.now()).isoformat()
-            }
-            sessoes_lista.append(sessao)
-        
-        # Log de sucesso
-        print(f"✅ Sessões do cliente {cliente_id} encontradas: {len(sessoes_lista)} registros")
-        
-        return jsonify(sessoes_lista), 200
-        
-    except Exception as error:
-        print(f"❌ Erro ao buscar sessões: {error}")
         return jsonify({"erro": "Erro interno do servidor"}), 500
 
 if __name__ == "__main__":

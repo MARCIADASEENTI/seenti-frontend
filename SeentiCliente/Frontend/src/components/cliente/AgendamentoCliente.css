@@ -1,0 +1,29 @@
+/* src/components/AgendamentoCliente.css */
+
+/* ✅ CORREÇÃO: Remover checkbox estranho */
+.agendamento-formulario input[type="checkbox"],
+.agendamento-formulario label:before,
+.agendamento-formulario label:after {
+  display: none !important;
+  content: none !important;
+}
+
+/* ✅ CORREÇÃO: Garantir que não haja elementos checkbox visíveis */
+form input[type="checkbox"] {
+  display: none !important;
+}
+
+form label:before,
+form label:after {
+  content: none !important;
+}
+
+/* ✅ CORREÇÃO: CSS específico para o formulário de agendamento */
+.agendamento-container {
+  background-color: #f4f4f4;
+  padding: 30px;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}

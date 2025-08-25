@@ -26,6 +26,15 @@
 
 ## 📁 **Documentação por Sprint**
 
+### **Sprint 07 - Em Andamento (20% Concluída)**
+- **[README.md](../Sprint%2007/README.md)** - Índice geral da Sprint 07
+- **[📄 Documento de Abertura – Sprint 07.md](../Sprint%2007/📄%20Documento%20de%20Abertura%20–%20Sprint%2007.md)** - Escopo oficial e tarefas propostas
+- **[00_Status_Geral_Sprint_07.md](../Sprint%2007/00_Status_Geral_Sprint_07.md)** - Status geral e progresso atual
+- **[01_Estrategia_Fluxo_Implementacao.md](../Sprint%2007/01_Estrategia_Fluxo_Implementacao.md)** - Metodologia de trabalho estabelecida
+- **[02_Tipos_Documentos_Gerados.md](../Sprint%2007/02_Tipos_Documentos_Gerados.md)** - Padrões de documentação estabelecidos
+- **[04_Tarefa_04_Agendamento_Detalhada.md](../Sprint%2007/04_Tarefa_04_Agendamento_Detalhada.md)** - Tarefa 04: Sistema de agendamento completo
+- **[05_Tarefa_05_Anamnese_Detalhada.md](../Sprint%2007/05_Tarefa_05_Anamnese_Detalhada.md)** - Tarefa 05: Formulário de anamnese refatorado
+
 ### **Sprint 04 - Fechamento**
 - **[01_Status_Sprint.md](../Sprint%2004/Fechamento%20da%20Sprint04/01_Status_Sprint.md)** - Status de conclusão da Sprint 04
 - **[02_Feedback_Arquiteto.md](../Sprint%2004/Fechamento%20da%20Sprint04/02_Feedback_Arquiteto.md)** - Feedback para aprovação do arquiteto
@@ -75,6 +84,16 @@ Docs/
 ├── Sprint 01/                 # Documentação da Sprint 01
 ├── Sprint 04/                 # Documentação da Sprint 04
 │   └── Fechamento da Sprint04/ # Documentos de fechamento
+├── Sprint 05/                 # Documentação da Sprint 05
+├── Sprint 06/                 # Documentação da Sprint 06
+├── Sprint 07/                 # Documentação da Sprint 07 (EM ANDAMENTO)
+│   ├── 📄 Documento de Abertura – Sprint 07.md
+│   ├── README.md
+│   ├── 00_Status_Geral_Sprint_07.md
+│   ├── 01_Estrategia_Fluxo_Implementacao.md
+│   ├── 02_Tipos_Documentos_Gerados.md
+│   ├── 04_Tarefa_04_Agendamento_Detalhada.md
+│   └── 05_Tarefa_05_Anamnese_Detalhada.md
 ├── Arquitetura/               # Documentação de arquitetura
 ├── Evolucao/                  # Documentação de evolução
 ├── Historia_do_Projeto/       # História do projeto
@@ -113,6 +132,20 @@ Docs/
 - [x] `08_Plano_Testes.md` - Plano de testes
 - [x] `09_Roadmap_Futuro.md` - Roadmap futuro
 - [x] `10_Indice_Documentacao.md` - Este índice
+
+### **🔄 Sprint 07 - Em Andamento**
+- [x] `README.md` - Índice da Sprint 07
+- [x] `📄 Documento de Abertura – Sprint 07.md` - Escopo oficial
+- [x] `00_Status_Geral_Sprint_07.md` - Status geral
+- [x] `01_Estrategia_Fluxo_Implementacao.md` - Metodologia
+- [x] `02_Tipos_Documentos_Gerados.md` - Padrões
+- [x] `04_Tarefa_04_Agendamento_Detalhada.md` - Tarefa 04
+- [x] `05_Tarefa_05_Anamnese_Detalhada.md` - Tarefa 05
+- [ ] `06_Tarefa_06_Perfil_WhiteLabel_Detalhada.md` - Tarefa 06 (pendente)
+- [ ] `07_Tarefa_07_Status_Agendamento_Anamnese_Detalhada.md` - Tarefa 07 (pendente)
+- [ ] `08_Tarefa_08_Rodape_Seenti_Detalhada.md` - Tarefa 08 (pendente)
+- [ ] `09_Tarefa_09_Ambiente_Producao_Detalhada.md` - Tarefa 09 (pendente)
+- [ ] `10_Tarefa_10_Variaveis_Ambiente_Detalhada.md` - Tarefa 10 (pendente)
 
 ### **🔄 Em Desenvolvimento**
 - [ ] Documentação de APIs
