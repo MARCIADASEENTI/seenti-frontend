@@ -140,3 +140,14 @@ tenant_padrao = {
 - **Valor padrão** para tenant existente
 - **Preparação para futuras expansões** (parceiros, segmentos)
 - **Retrocompatibilidade** mantida
+
+
+
+
+
+
+
+
+
+
+

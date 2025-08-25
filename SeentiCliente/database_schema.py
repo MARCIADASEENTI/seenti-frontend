@@ -5,7 +5,7 @@ Definição de todas as coleções e validações antes do desenvolvimento
 
 from datetime import datetime, date
 from typing import Dict, List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 # ============================================================================
@@ -123,45 +123,103 @@ class SchemaCliente:
 
 @dataclass
 class SchemaAnamnese:
-    """Schema da coleção 'anamneses'"""
+    """Schema da coleção 'anamneses' - REFATORADO Sprint 07"""
     _id: str  # ObjectId
-    cliente_id: str  # ObjectId referência
+    cliente_id: str  # ObjectId referência ao cliente
+    data_envio: datetime  # Data/hora do preenchimento
+    dados: Dict  # Estrutura organizada e validada
+    registrado_por: str  # ObjectId do terapeuta ou usuário responsável
     tenant_id: str  # para multi-tenant
     status: StatusAnamnese = StatusAnamnese.PENDENTE
-    dados: Dict  # estrutura flexível mas validada
-    data_criacao: datetime
-    data_atualizacao: datetime
-    data_preenchimento: Optional[datetime] = None
+    data_criacao: datetime = field(default_factory=datetime.now)
+    data_atualizacao: datetime = field(default_factory=datetime.now)
     
-    # Estrutura esperada dos dados
+    # Estrutura esperada dos dados - NOVA ESTRUTURA ORGANIZADA
     @staticmethod
     def get_estrutura_dados() -> Dict:
         return {
-            "identificacao": {
-                "nome_completo": str,
-                "idade": int,
-                "sexo": str,
-                "profissao": str,
-                "estado_civil": str,
-                "escolaridade": str,
-                "religiao": str
+            "objetivo": str,  # Objetivo principal da sessão
+            "dor_atual": str,  # Descrição da dor atual
+            "nivel_dor": int,  # Escala 0-10
+            
+            "historico_saude": {
+                "pressao_alta": {
+                    "tem": bool,
+                    "controle": Optional[str]  # "controlada", "descompensada", "não informado"
+                },
+                "diabetes": {
+                    "tem": bool,
+                    "controle": Optional[str]  # "controlada", "descompensada", "não informado"
+                },
+                "alergias": Optional[str],  # String ou null
+                "sintomas_pernas": Optional[str]  # String ou null
             },
-            "queixa_principal": str,
-            "historia_atual": str,
-            "antecedentes_pessoais": str,
-            "antecedentes_familiares": str,
-            "medicamentos_atuais": List[str],
-            "alergias": List[str],
+            
             "habitos": {
-                "alimentacao": str,
-                "sono": str,
-                "exercicios": str,
-                "tabagismo": str,
-                "alcool": str
+                "funcionamento_intestinal": str,  # regular/irregular
+                "alimentacao": str,  # boa/regular/ruim
+                "anticoncepcional": Optional[str],  # String ou null
+                "gestante": Optional[int]  # Número de semanas ou null
             },
-            "exame_fisico": str,
-            "observacoes": str
+            
+            "historico_clinico": {
+                "estresse": bool,
+                "enxaqueca": bool,
+                "depressao": bool,
+                "insonia": bool,
+                "dor_mandibula": bool,
+                "bruxismo": bool,
+                "disturbio_renal": Optional[str],  # String ou null
+                "antecedente_oncologico": Optional[str],  # String ou null
+                "pedra_rim": bool,
+                "pedra_vesicula": bool,
+                "doenca_cronica": Optional[str]  # String ou null
+            },
+            
+            "restricoes": {
+                "nao_gosta_massagem_em": Optional[str]  # String ou null
+            },
+            
+            "conduta_tratamento": str,  # Conduta sugerida pelo terapeuta
+            "aceite_termo": bool  # Aceite dos termos de uso
         }
+    
+    # Validações específicas para a nova estrutura
+    @staticmethod
+    def validar_nivel_dor(nivel: int) -> bool:
+        """Valida se o nível de dor está entre 0 e 10"""
+        return 0 <= nivel <= 10
+    
+    @staticmethod
+    def validar_funcionamento_intestinal(valor: str) -> bool:
+        """Valida valores para funcionamento intestinal"""
+        valores_validos = ["regular", "irregular"]
+        return valor in valores_validos
+    
+    @staticmethod
+    def validar_alimentacao(valor: str) -> bool:
+        """Valida valores para alimentação"""
+        valores_validos = ["boa", "regular", "ruim"]
+        return valor in valores_validos
+    
+    @staticmethod
+    def validar_gestante(valor: Optional[str]) -> bool:
+        """Valida valor para gestante (string vazia ou número positivo)"""
+        if valor == '' or valor is None:
+            return True
+        try:
+            valor_int = int(valor)
+            return valor_int > 0
+        except (ValueError, TypeError):
+            return False
+    
+    @staticmethod
+    def validar_controle_doenca(valor: Optional[str]) -> bool:
+        """Valida valores para controle de doenças"""
+        if valor is None:
+            return True
+        valores_validos = ["controlada", "descompensada", "não informado"]
+        return valor in valores_validos
 
 @dataclass
 class SchemaTenant:

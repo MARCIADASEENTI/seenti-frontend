@@ -24,9 +24,19 @@ const NotificacoesCliente = () => {
 
         const response = await api.get(`/notificacoes/cliente/${cliente_id}`);
         if (response.status === 200 && response.data) {
-          setNotificacoes(response.data.notificacoes || []);
-          setTotalNaoLidas(response.data.total_nao_lidas || 0);
-          console.log('✅ Notificações carregadas:', response.data);
+          const notificacoesData = response.data.data || response.data;
+          const notificacoesList = notificacoesData.notificacoes || [];
+          const totalNaoLidasCount = notificacoesData.total_nao_lidas || 0;
+          
+          setNotificacoes(notificacoesList);
+          setTotalNaoLidas(totalNaoLidasCount);
+          
+          // ✅ NOVO: Log detalhado para debug
+          console.log('✅ Notificações carregadas:', {
+            total: notificacoesList.length,
+            nao_lidas: totalNaoLidasCount,
+            estrutura: response.data
+          });
         }
       } catch (error) {
         console.error('❌ Erro ao carregar notificações:', error);
@@ -134,21 +144,55 @@ const NotificacoesCliente = () => {
     }
   };
 
-  // Formatar data
+  // ✅ MELHORADO: Formatar data com validação robusta
   const formatarData = (dataString) => {
-    const data = new Date(dataString);
-    const agora = new Date();
-    const diffMs = agora - data;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+    try {
+      let data;
+      
+      // ✅ NOVO: Lidar com diferentes formatos de data
+      if (typeof dataString === 'string') {
+        // Se for string, tentar diferentes formatos
+        if (dataString.includes('$date')) {
+          // Formato MongoDB
+          const match = dataString.match(/"\$date":\s*"([^"]+)"/);
+          if (match) {
+            data = new Date(match[1]);
+          } else {
+            data = new Date(dataString);
+          }
+        } else {
+          data = new Date(dataString);
+        }
+      } else if (dataString && typeof dataString === 'object' && dataString.$date) {
+        // Objeto MongoDB direto
+        data = new Date(dataString.$date);
+      } else {
+        data = new Date(dataString);
+      }
+      
+      // ✅ NOVO: Validar se a data é válida
+      if (isNaN(data.getTime())) {
+        console.warn('⚠️ Data inválida recebida:', dataString);
+        return 'Data inválida';
+      }
+      
+      const agora = new Date();
+      const diffMs = agora - data;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Agora mesmo';
-    if (diffMins < 60) return `${diffMins} min atrás`;
-    if (diffHours < 24) return `${diffHours}h atrás`;
-    if (diffDays < 7) return `${diffDays} dias atrás`;
-    
-    return data.toLocaleDateString('pt-BR');
+      if (diffMs < 0) return 'Futuro';
+      if (diffMins < 1) return 'Agora mesmo';
+      if (diffMins < 60) return `${diffMins} min atrás`;
+      if (diffHours < 24) return `${diffHours}h atrás`;
+      if (diffDays < 7) return `${diffDays} dias atrás`;
+      
+      return data.toLocaleDateString('pt-BR');
+    } catch (error) {
+      console.error('❌ Erro ao formatar data:', error, 'Data recebida:', dataString);
+      return 'Data inválida';
+    }
   };
 
   // Obter ícone por tipo
