@@ -9,16 +9,32 @@ import os
 import re  # ✅ Adicionado para tratar CPF
 import sys
 
+# 🔐 INTEGRAÇÃO JWT
+import sys
+sys.path.append('/home/marcia/seenti_app')
+from jwt_integration import init_jwt_system
+
 load_dotenv()  # ✅ Carrega as variáveis do .env
 print(f"MONGO_URI: {os.getenv('MONGO_URI')}", file=sys.stderr)
 import ssl
 print("🔐 RENDER - OpenSSL version usada:", ssl.OPENSSL_VERSION)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://localhost:5173", "https://frontend-seenti-app.vercel.app"]}}, supports_credentials=True)
+
+# Configurar CORS com variável de ambiente
+cors_origins = os.getenv('CORS_ORIGINS', 'https://seenti-frontend.vercel.app').split(',')
+CORS(app, resources={r"/*": {"origins": cors_origins}}, supports_credentials=True)
 
 app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+
+# 🔐 INICIALIZAR SISTEMA JWT
+try:
+    init_jwt_system(app)
+    print("✅ Sistema JWT integrado com sucesso!")
+except Exception as e:
+    print(f"❌ Erro ao integrar JWT: {e}")
+    print("⚠️ Aplicação continuará funcionando sem JWT")
 
 mongo = PyMongo(app)
 db = mongo.db
@@ -26,14 +42,14 @@ usuarios = db["usuarios"]
 
 # --- Coleções ---
 usuarios = db["usuarios"]
-clientes = db["usuarios"]
+clientes = db["clientes"]
 anamneses = db["anamneses"]
 termos_uso = db["termos_uso"]
 progresso_usuario = db["progresso_usuario"]
 agendamentos = db["agendamentos"]
 terapeutas = db["terapeutas"]
-feedback = db["feedback"]
-sessoes = db["sessoes"]
+configuracoes_clientes = db["configuracoes_clientes"]
+feedback = db["feedback"]  # ✅ NOVO: Coleção para feedback dos clientes
 
 
 # --- LOGIN ---
@@ -443,76 +459,38 @@ def criar_anamnese():
     if anamnese_existente:
         return jsonify({"erro": "Cliente já possui uma anamnese registrada"}), 409
 
-    # Validação dos campos obrigatórios
+    # Validação dos campos obrigatórios - NOVA ESTRUTURA Sprint 07
     campos_obrigatorios = [
-        "objetivo", "area_enfase", "dor_atual", "funcionamento_intestinal",
-        "stress_diario", "enxaqueca", "depressao", "insonia", "dor_mandibula",
-        "bruxismo", "disturbio_renal", "antecedente_oncologico", "pedra_rim",
-        "pedra_vesicula", "doenca_cronica", "email", "whatsapp"
+        "objetivo", "dor_atual", "nivel_dor"
     ]
     
     for campo in campos_obrigatorios:
         if campo not in dados_anamnese:
             return jsonify({"erro": f"Campo obrigatório '{campo}' não encontrado"}), 400
 
-    # Validação de tipos de dados
-    campos_booleanos = [
-        "enxaqueca", "depressao", "insonia", "dor_mandibula", "bruxismo",
-        "disturbio_renal", "antecedente_oncologico", "pedra_rim",
-        "pedra_vesicula", "doenca_cronica"
-    ]
-    
-    for campo in campos_booleanos:
-        if not isinstance(dados_anamnese[campo], bool):
-            return jsonify({"erro": f"Campo '{campo}' deve ser true ou false"}), 400
+    # Validação de tipos de dados - NOVA ESTRUTURA Sprint 07
+    if not isinstance(dados_anamnese["nivel_dor"], int) or dados_anamnese["nivel_dor"] < 0 or dados_anamnese["nivel_dor"] > 10:
+        return jsonify({"erro": "Nível de dor deve ser um número entre 0 e 10"}), 400
 
-    # Validação de email
-    email_regex = r'^[\w\.-]+@[\w\.-]+\.\w{2,}$'
-    if not re.match(email_regex, dados_anamnese["email"]):
-        return jsonify({"erro": "Formato de email inválido"}), 400
+    # Validação de funcionamento intestinal (nova estrutura)
+    if "habitos" in dados_anamnese and "funcionamento_intestinal" in dados_anamnese["habitos"]:
+        valores_validos_intestino = ["regular", "irregular"]
+        if dados_anamnese["habitos"]["funcionamento_intestinal"] not in valores_validos_intestino:
+            return jsonify({"erro": "Funcionamento intestinal deve ser: regular ou irregular"}), 400
 
-    # Validação de WhatsApp (formato brasileiro opcional)
-    whatsapp_regex = r'^\(?\d{2}\)? ?\d{4,5}-?\d{4}$'
-    if not re.match(whatsapp_regex, dados_anamnese["whatsapp"]):
-        return jsonify({"erro": "Formato de WhatsApp inválido. Use: (31) 99999-9999"}), 400
+    # Validação de alimentação (nova estrutura)
+    if "habitos" in dados_anamnese and "alimentacao" in dados_anamnese["habitos"]:
+        valores_validos_alimentacao = ["boa", "regular", "ruim"]
+        if dados_anamnese["habitos"]["alimentacao"] not in valores_validos_alimentacao:
+            return jsonify({"erro": "Alimentação deve ser: boa, regular ou ruim"}), 400
 
-    # Validação de funcionamento intestinal
-    valores_validos_intestino = ["normal", "preso", "solto"]
-    if dados_anamnese["funcionamento_intestinal"].lower() not in valores_validos_intestino:
-        return jsonify({"erro": "Funcionamento intestinal deve ser: normal, preso ou solto"}), 400
-
-    # Validação de stress diário
-    valores_validos_stress = ["baixo", "moderado", "alto"]
-    if dados_anamnese["stress_diario"].lower() not in valores_validos_stress:
-        return jsonify({"erro": "Stress diário deve ser: baixo, moderado ou alto"}), 400
-
-    # Preparar dados para inserção
+    # Preparar dados para inserção - NOVA ESTRUTURA Sprint 07
     anamnese_data = {
         "cliente_id": cliente_obj_id,
         "data_envio": datetime.now(),
-        "dados": {
-            "objetivo": dados_anamnese["objetivo"].strip(),
-            "area_enfase": dados_anamnese["area_enfase"].strip(),
-            "dor_atual": dados_anamnese["dor_atual"].strip(),
-            "funcionamento_intestinal": dados_anamnese["funcionamento_intestinal"].lower(),
-            "anticoncepcional": dados_anamnese.get("anticoncepcional", "").strip() or None,
-            "alimentacao": dados_anamnese.get("alimentacao", "").strip() or None,
-            "stress_diario": dados_anamnese["stress_diario"].lower(),
-            "enxaqueca": dados_anamnese["enxaqueca"],
-            "depressao": dados_anamnese["depressao"],
-            "insonia": dados_anamnese["insonia"],
-            "dor_mandibula": dados_anamnese["dor_mandibula"],
-            "bruxismo": dados_anamnese["bruxismo"],
-            "disturbio_renal": dados_anamnese["disturbio_renal"],
-            "antecedente_oncologico": dados_anamnese["antecedente_oncologico"],
-            "pedra_rim": dados_anamnese["pedra_rim"],
-            "pedra_vesicula": dados_anamnese["pedra_vesicula"],
-            "doenca_cronica": dados_anamnese["doenca_cronica"],
-            "observacoes_saude": dados_anamnese.get("observacoes_saude", "").strip() or None,
-            "nao_gosta_massagem_em": dados_anamnese.get("nao_gosta_massagem_em", "").strip() or None,
-            "email": dados_anamnese["email"].strip(),
-            "whatsapp": dados_anamnese["whatsapp"].strip()
-        }
+        "dados": dados_anamnese,  # Salvar estrutura completa como enviada
+        "registrado_por": cliente_obj_id,  # Cliente preenchendo para si mesmo
+        "tenant_id": "default"  # Será ajustado conforme implementação
     }
     
     resultado = anamneses.insert_one(anamnese_data)
@@ -528,11 +506,17 @@ def buscar_anamnese(cliente_id):
     except Exception:
         return jsonify({"erro": "ID de cliente inválido"}), 400
 
-    resultado = list(anamneses.find({"cliente_id": obj_id}))
-    for doc in resultado:
-        doc["_id"] = str(doc["_id"])
-        doc["cliente_id"] = str(doc["cliente_id"])
-    return jsonify(resultado), 200
+    # Buscar anamnese específica do cliente (deve ser única)
+    anamnese = anamneses.find_one({"cliente_id": obj_id})
+    
+    if not anamnese:
+        return jsonify({"erro": "Anamnese não encontrada"}), 404
+    
+    # Converter ObjectId para string
+    anamnese["_id"] = str(anamnese["_id"])
+    anamnese["cliente_id"] = str(anamnese["cliente_id"])
+    
+    return jsonify(anamnese), 200
 
 # --- PROGRESSO USUÁRIO ---
 @app.route("/progresso_usuario", methods=["POST"])
@@ -697,67 +681,8 @@ def criar_agendamento():
         "agendamento_id": str(resultado.inserted_id)
     }), 201
 
-@app.route("/agendamentos/cliente/<cliente_id>", methods=["GET"])
-def buscar_agendamentos_cliente(cliente_id):
-    """Busca agendamentos de um cliente específico"""
-    try:
-        obj_id = ObjectId(cliente_id)
-    except Exception:
-        return jsonify({"erro": "ID de cliente inválido"}), 400
-
-    # Buscar agendamentos com dados do terapeuta
-    pipeline = [
-        {"$match": {"cliente_id": obj_id}},
-        {"$lookup": {
-            "from": "terapeutas",
-            "localField": "terapeuta_id",
-            "foreignField": "_id",
-            "as": "terapeuta"
-        }},
-        {"$unwind": "$terapeuta"},
-        {"$sort": {"data": 1, "horario": 1}}
-    ]
-
-    resultado = list(agendamentos.aggregate(pipeline))
-    
-    # Converter ObjectIds para strings
-    for doc in resultado:
-        doc["_id"] = str(doc["_id"])
-        doc["cliente_id"] = str(doc["cliente_id"])
-        doc["terapeuta_id"] = str(doc["terapeuta_id"])
-        doc["terapeuta"]["_id"] = str(doc["terapeuta"]["_id"])
-
-    return jsonify(resultado), 200
-
-@app.route("/agendamentos/<agendamento_id>", methods=["DELETE"])
-def cancelar_agendamento(agendamento_id):
-    """Cancela um agendamento"""
-    try:
-        obj_id = ObjectId(agendamento_id)
-    except Exception:
-        return jsonify({"erro": "ID de agendamento inválido"}), 400
-
-    # Verificar se agendamento existe
-    agendamento = agendamentos.find_one({"_id": obj_id})
-    if not agendamento:
-        return jsonify({"erro": "Agendamento não encontrado"}), 404
-
-    # Verificar se pode ser cancelado
-    if agendamento["status"] == "cancelado":
-        return jsonify({"erro": "Agendamento já foi cancelado"}), 400
-
-    # Cancelar agendamento
-    agendamentos.update_one(
-        {"_id": obj_id},
-        {
-            "$set": {
-                "status": "cancelado",
-                "data_atualizacao": datetime.now()
-            }
-        }
-    )
-
-    return jsonify({"mensagem": "Agendamento cancelado com sucesso"}), 200
+# Função removida - duplicata da linha 1190
+# Função removida - duplicata da linha 1220
 
 @app.route("/agendamentos/horarios-disponiveis", methods=["GET"])
 def obter_horarios_disponiveis():
@@ -789,71 +714,868 @@ def buscar_terapeutas_disponiveis():
         print(f"Erro ao buscar terapeutas: {str(e)}")
         return jsonify({"erro": "Erro ao buscar terapeutas"}), 500
 
+# --- NOTIFICAÇÕES DO CLIENTE ---
+@app.route("/notificacoes/cliente/<cliente_id>", methods=["GET"])
+def buscar_notificacoes_cliente(cliente_id):
+    """Busca notificações de um cliente específico"""
+    try:
+        obj_id = ObjectId(cliente_id)
+    except Exception:
+        return jsonify({"erro": "ID de cliente inválido"}), 400
+
+    # Verificar se o cliente existe
+    cliente = clientes.find_one({"_id": obj_id})
+    if not cliente:
+        return jsonify({"erro": "Cliente não encontrado"}), 404
+
+    # Buscar notificações
+    notificacoes = list(db["notificacoes_clientes"].find({"cliente_id": obj_id}).sort("criado_em", -1).limit(50))
+    
+    # Contar não lidas
+    total_nao_lidas = db["notificacoes_clientes"].count_documents({
+        "cliente_id": obj_id,
+        "status": "nao_lida"
+    })
+    
+    # Converter ObjectIds para string
+    for notif in notificacoes:
+        notif["_id"] = str(notif["_id"])
+        notif["cliente_id"] = str(notif["cliente_id"])
+
+    return jsonify({
+        "success": True,
+        "data": {
+            "notificacoes": notificacoes,
+            "total": len(notificacoes),
+            "total_nao_lidas": total_nao_lidas
+        }
+    }), 200
+
+@app.route("/notificacoes/<notificacao_id>/ler", methods=["PATCH"])
+def marcar_notificacao_como_lida(notificacao_id):
+    """Marca uma notificação como lida"""
+    try:
+        obj_id = ObjectId(notificacao_id)
+    except Exception:
+        return jsonify({"erro": "ID de notificação inválido"}), 400
+
+    # Buscar e atualizar notificação
+    resultado = db["notificacoes_clientes"].update_one(
+        {"_id": obj_id},
+        {
+            "$set": {
+                "status": "lida",
+                "lida_em": datetime.now()
+            }
+        }
+    )
+    
+    if resultado.matched_count == 0:
+        return jsonify({"erro": "Notificação não encontrada"}), 404
+
+    return jsonify({
+        "success": True,
+        "message": "Notificação marcada como lida"
+    }), 200
+
+@app.route("/notificacoes/cliente/<cliente_id>/ler-todas", methods=["PATCH"])
+def marcar_todas_notificacoes_como_lidas(cliente_id):
+    """Marca todas as notificações de um cliente como lidas"""
+    try:
+        obj_id = ObjectId(cliente_id)
+    except Exception:
+        return jsonify({"erro": "ID de cliente inválido"}), 400
+
+    # Verificar se o cliente existe
+    cliente = clientes.find_one({"_id": obj_id})
+    if not cliente:
+        return jsonify({"erro": "Cliente não encontrado"}), 404
+
+    # Marcar todas como lidas
+    resultado = db["notificacoes_clientes"].update_many(
+        {"cliente_id": obj_id, "status": "nao_lida"},
+        {
+            "$set": {
+                "status": "lida",
+                "lida_em": datetime.now()
+            }
+        }
+    )
+
+    return jsonify({
+        "success": True,
+        "message": "Todas as notificações foram marcadas como lidas",
+        "data": {
+            "cliente_id": cliente_id,
+            "notificacoes_marcadas": resultado.modified_count
+        }
+    }), 200
+
+@app.route("/notificacoes/teste", methods=["POST"])
+def criar_notificacao_teste():
+    """Cria uma notificação de teste para desenvolvimento"""
+    try:
+        dados = request.json or {}
+        cliente_id = dados.get("cliente_id")
+        
+        if not cliente_id:
+            return jsonify({"erro": "cliente_id é obrigatório"}), 400
+            
+        try:
+            obj_id = ObjectId(cliente_id)
+        except Exception:
+            return jsonify({"erro": "ID de cliente inválido"}), 400
+
+        # Verificar se o cliente existe
+        cliente = clientes.find_one({"_id": obj_id})
+        if not cliente:
+            return jsonify({"erro": "Cliente não encontrado"}), 404
+
+        # Criar notificação de teste
+        notificacao = {
+            "cliente_id": obj_id,
+            "tipo": dados.get("tipo", "sistema"),
+            "titulo": "Notificação de Teste",
+            "mensagem": "Esta é uma notificação de teste para validar o sistema.",
+            "status": "nao_lida",
+            "criado_em": datetime.now()
+        }
+        
+        resultado = db["notificacoes_clientes"].insert_one(notificacao)
+        
+        # Converter ObjectId para string
+        notificacao["_id"] = str(resultado.inserted_id)
+        notificacao["cliente_id"] = str(notificacao["cliente_id"])
+
+        print(f"✅ Notificação de teste criada para cliente {cliente_id}")
+
+        return jsonify({
+            "success": True,
+            "message": "Notificação de teste criada com sucesso",
+            "data": notificacao
+        }), 201
+        
+    except Exception as e:
+        print(f"❌ Erro ao criar notificação de teste: {str(e)}")
+        return jsonify({"erro": "Erro interno do servidor"}), 500
+
+# --- CONFIGURAÇÕES DO CLIENTE ---
+@app.route("/configuracoes/cliente/<cliente_id>", methods=["GET"])
+def buscar_configuracoes_cliente(cliente_id):
+    """Busca configurações de um cliente específico"""
+    try:
+        obj_id = ObjectId(cliente_id)
+    except Exception:
+        return jsonify({"erro": "ID de cliente inválido"}), 400
+
+    # Verificar se o cliente existe
+    cliente = clientes.find_one({"_id": obj_id})
+    if not cliente:
+        return jsonify({"erro": "Cliente não encontrado"}), 404
+
+    # Buscar configurações
+    configuracoes = db["configuracoes_clientes"].find_one({"cliente_id": obj_id})
+    
+    if not configuracoes:
+        return jsonify({"erro": "Configurações não encontradas para este cliente"}), 404
+
+    # Converter ObjectId para string
+    configuracoes["_id"] = str(configuracoes["_id"])
+    configuracoes["cliente_id"] = str(configuracoes["cliente_id"])
+
+    return jsonify(configuracoes), 200
+
+@app.route("/configuracoes/cliente/<cliente_id>", methods=["POST"])
+def salvar_configuracoes_cliente(cliente_id):
+    """Cria ou atualiza configurações de um cliente"""
+    try:
+        obj_id = ObjectId(cliente_id)
+    except Exception:
+        return jsonify({"erro": "ID de cliente inválido"}), 400
+
+    # Verificar se o cliente existe
+    cliente = clientes.find_one({"_id": obj_id})
+    if not cliente:
+        return jsonify({"erro": "Cliente não encontrado"}), 404
+
+    dados_configuracao = request.json or {}
+    
+    # Preparar dados para salvamento
+    dados_para_salvar = {}
+    
+    # Mapear estrutura do frontend para estrutura do MongoDB
+    if "notificacoes_email" in dados_configuracao:
+        dados_para_salvar["notificacoes.email"] = dados_configuracao["notificacoes_email"]
+    if "notificacoes_push" in dados_configuracao:
+        dados_para_salvar["notificacoes.push"] = dados_configuracao["notificacoes_push"]
+    if "notificacoes_agendamentos" in dados_configuracao:
+        dados_para_salvar["notificacoes.agendamentos"] = dados_configuracao["notificacoes_agendamentos"]
+    if "notificacoes_lembretes" in dados_configuracao:
+        dados_para_salvar["notificacoes.lembretes"] = dados_configuracao["notificacoes_lembretes"]
+    if "notificacoes_promocoes" in dados_configuracao:
+        dados_para_salvar["notificacoes.promocoes"] = dados_configuracao["notificacoes_promocoes"]
+    
+    if "perfil_publico" in dados_configuracao:
+        dados_para_salvar["privacidade.perfil_publico"] = dados_configuracao["perfil_publico"]
+    if "compartilhar_dados" in dados_configuracao:
+        dados_para_salvar["privacidade.compartilhar_dados"] = dados_configuracao["compartilhar_dados"]
+    if "receber_contatos" in dados_configuracao:
+        dados_para_salvar["privacidade.receber_contatos"] = dados_configuracao["receber_contatos"]
+    
+    if "idioma" in dados_configuracao:
+        dados_para_salvar["preferencias.idioma"] = dados_configuracao["idioma"]
+    if "tema" in dados_configuracao:
+        dados_para_salvar["preferencias.tema"] = dados_configuracao["tema"]
+    if "fuso_horario" in dados_configuracao:
+        dados_para_salvar["preferencias.fuso_horario"] = dados_configuracao["fuso_horario"]
+
+    # Adicionar metadados
+    dados_para_salvar["atualizado_em"] = datetime.now()
+
+    # Criar ou atualizar configurações
+    resultado = db["configuracoes_clientes"].update_one(
+        {"cliente_id": obj_id},
+        {
+            "$set": dados_para_salvar,
+            "$setOnInsert": {"criado_em": datetime.now()}
+        },
+        upsert=True
+    )
+
+    # Log de sucesso
+    print(f"✅ Configurações salvas para cliente {cliente_id}:", dados_para_salvar)
+
+    return jsonify({
+        "mensagem": "Configurações salvas com sucesso",
+        "cliente_id": cliente_id,
+        "configuracoes_salvas": dados_para_salvar
+    }), 200
+
+@app.route("/configuracoes/cliente/<cliente_id>", methods=["PATCH"])
+def atualizar_configuracao_cliente(cliente_id):
+    """Atualiza configuração específica de um cliente"""
+    try:
+        obj_id = ObjectId(cliente_id)
+    except Exception:
+        return jsonify({"erro": "ID de cliente inválido"}), 400
+
+    # Verificar se o cliente existe
+    cliente = clientes.find_one({"_id": obj_id})
+    if not cliente:
+        return jsonify({"erro": "Cliente não encontrado"}), 404
+
+    dados = request.json or {}
+    campo = dados.get("campo")
+    valor = dados.get("valor")
+
+    if not campo or valor is None:
+        return jsonify({"erro": "Campo e valor são obrigatórios"}), 400
+
+    # Buscar configurações existentes
+    configuracoes = db["configuracoes_clientes"].find_one({"cliente_id": obj_id})
+    
+    # Se não existir, criar com valores padrão
+    if not configuracoes:
+        configuracoes_padrao = {
+            "cliente_id": obj_id,
+            "notificacoes": {
+                "email": True,
+                "push": True,
+                "agendamentos": True,
+                "lembretes": True,
+                "promocoes": False
+            },
+            "privacidade": {
+                "perfil_publico": False,
+                "compartilhar_dados": False,
+                "receber_contatos": False
+            },
+            "preferencias": {
+                "idioma": "pt-BR",
+                "tema": "claro",
+                "fuso_horario": "America/Sao_Paulo"
+            },
+            "criado_em": datetime.now(),
+            "atualizado_em": datetime.now()
+        }
+        db["configuracoes_clientes"].insert_one(configuracoes_padrao)
+
+    # Atualizar configuração específica
+    resultado = db["configuracoes_clientes"].update_one(
+        {"cliente_id": obj_id},
+        {
+            "$set": {
+                campo: valor,
+                "atualizado_em": datetime.now()
+            }
+        }
+    )
+
+    # Log de sucesso
+    print(f"✅ Configuração atualizada para cliente {cliente_id}:", {campo, valor})
+
+    return jsonify({
+        "mensagem": "Configuração atualizada com sucesso",
+        "campo": campo,
+        "valor": valor
+    }), 200
+
+@app.route("/configuracoes/cliente/<cliente_id>", methods=["DELETE"])
+def deletar_configuracoes_cliente(cliente_id):
+    """Deleta configurações de um cliente"""
+    try:
+        obj_id = ObjectId(cliente_id)
+    except Exception:
+        return jsonify({"erro": "ID de cliente inválido"}), 400
+
+    # Verificar se o cliente existe
+    cliente = clientes.find_one({"_id": obj_id})
+    if not cliente:
+        return jsonify({"erro": "Cliente não encontrado"}), 404
+
+    # Deletar configurações
+    resultado = db["configuracoes_clientes"].delete_one({"cliente_id": obj_id})
+    
+    if resultado.deleted_count == 0:
+        return jsonify({"erro": "Configurações não encontradas para este cliente"}), 404
+
+    # Log de sucesso
+    print(f"✅ Configurações deletadas para cliente {cliente_id}")
+
+    return jsonify({"mensagem": "Configurações deletadas com sucesso"}), 200
+
+# ===== SISTEMA DE AGENDAMENTOS =====
+
+# ✅ NOVO: Função para criar notificações automáticas
+def criar_notificacao_automatica(cliente_id, tipo, titulo, mensagem):
+    """Cria notificação automática para o cliente"""
+    try:
+        notificacao = {
+            "cliente_id": ObjectId(cliente_id),
+            "tipo": tipo,
+            "titulo": titulo,
+            "mensagem": mensagem,
+            "status": "nao_lida",
+            "criado_em": datetime.now(),
+            "automatica": True
+        }
+        
+        resultado = db["notificacoes_clientes"].insert_one(notificacao)
+        print(f"🔔 Notificação automática criada: {titulo} para cliente {cliente_id}")
+        return resultado.inserted_id
+    except Exception as e:
+        print(f"❌ Erro ao criar notificação automática: {e}")
+        return None
+
+@app.route("/agendamentos/cliente/<cliente_id>", methods=["POST"])
+def criar_agendamento_cliente(cliente_id):
+    """Cria nova solicitação de agendamento para um cliente"""
+    try:
+        obj_id = ObjectId(cliente_id)
+    except Exception:
+        return jsonify({"erro": "ID de cliente inválido"}), 400
+
+    # Verificar se o cliente existe
+    cliente = clientes.find_one({"_id": obj_id})
+    if not cliente:
+        return jsonify({"erro": "Cliente não encontrado"}), 404
+
+    dados = request.json or {}
+    data_solicitada = dados.get("data_solicitada")
+    hora_solicitada = dados.get("hora_solicitada")
+    observacoes = dados.get("observacoes", "")
+
+    # Validações básicas
+    if not data_solicitada or not hora_solicitada:
+        return jsonify({"erro": "Data e hora são obrigatórias"}), 400
+
+    # Validar formato da data
+    try:
+        data = datetime.fromisoformat(data_solicitada.replace('Z', '+00:00'))
+        if data < datetime.now():
+            return jsonify({"erro": "Não é possível solicitar agendamento para datas passadas"}), 400
+    except ValueError:
+        return jsonify({"erro": "Formato de data inválido"}), 400
+
+    # Validar formato da hora (HH:MM)
+    if not re.match(r'^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$', hora_solicitada):
+        return jsonify({"erro": "Formato de hora inválido. Use HH:MM"}), 400
+
+    # Verificar se não há conflito de horário para o mesmo cliente
+    conflito = agendamentos.find_one({
+        "cliente_id": obj_id,
+        "data_solicitada": data,
+        "hora_solicitada": hora_solicitada,
+        "status": {"$in": ["pendente", "confirmado"]}
+    })
+
+    if conflito:
+        return jsonify({"erro": "Já existe um agendamento para esta data e horário"}), 400
+
+    # Criar o agendamento
+    novo_agendamento = {
+        "cliente_id": obj_id,
+        "data_solicitada": data,
+        "hora_solicitada": hora_solicitada,
+        "observacoes": observacoes,
+        "status": "pendente",
+        "criado_em": datetime.now(),
+        "atualizado_em": datetime.now()
+    }
+
+    resultado = agendamentos.insert_one(novo_agendamento)
+    novo_agendamento["_id"] = resultado.inserted_id
+
+    # ✅ NOVO: Criar notificação automática para o cliente
+    data_formatada = data.strftime("%d/%m/%Y")
+    hora_formatada = hora_solicitada
+    criar_notificacao_automatica(
+        cliente_id=cliente_id,
+        tipo="agendamento",
+        titulo="📅 Agendamento Solicitado",
+        mensagem=f"Sua solicitação de agendamento para {data_formatada} às {hora_formatada} foi recebida e está sendo analisada pelo terapeuta. Você receberá uma confirmação em breve."
+    )
+
+    # Log de sucesso
+    print(f"✅ Agendamento criado para cliente {cliente_id}:", novo_agendamento["_id"])
+
+    return jsonify({
+        "mensagem": "Agendamento solicitado com sucesso!",
+        "agendamento": novo_agendamento
+    }), 201
+
+@app.route("/agendamentos/cliente/<cliente_id>", methods=["GET"])
+def buscar_agendamentos_cliente(cliente_id):
+    """Busca agendamentos de um cliente específico"""
+    try:
+        obj_id = ObjectId(cliente_id)
+    except Exception:
+        return jsonify({"erro": "ID de cliente inválido"}), 400
+
+    # Verificar se o cliente existe
+    cliente = clientes.find_one({"_id": obj_id})
+    if not cliente:
+        return jsonify({"erro": "Cliente não encontrado"}), 404
+
+    # Buscar agendamentos do cliente
+    agendamentos_cliente = list(agendamentos.find({"cliente_id": obj_id})
+        .sort([("data_solicitada", 1), ("hora_solicitada", 1)]))
+    
+    # Converter ObjectIds para string
+    for agendamento in agendamentos_cliente:
+        agendamento["_id"] = str(agendamento["_id"])
+        agendamento["cliente_id"] = str(agendamento["cliente_id"])
+
+    # Log de sucesso
+    print(f"✅ {len(agendamentos_cliente)} agendamentos encontrados para cliente {cliente_id}")
+
+    return jsonify({
+        "mensagem": "Agendamentos encontrados com sucesso",
+        "agendamentos": agendamentos_cliente,
+        "total": len(agendamentos_cliente)
+    }), 200
+
+@app.route("/agendamentos/<agendamento_id>/cancelar", methods=["PATCH"])
+def cancelar_agendamento(agendamento_id):
+    """Cancela um agendamento (apenas se pendente)"""
+    try:
+        obj_id = ObjectId(agendamento_id)
+    except Exception:
+        return jsonify({"erro": "ID de agendamento inválido"}), 400
+
+    dados = request.json or {}
+    cliente_id = dados.get("cliente_id")
+
+    if not cliente_id:
+        return jsonify({"erro": "ID do cliente é obrigatório"}), 400
+
+    try:
+        cliente_obj_id = ObjectId(cliente_id)
+    except Exception:
+        return jsonify({"erro": "ID de cliente inválido"}), 400
+
+    # Buscar o agendamento
+    agendamento = agendamentos.find_one({"_id": obj_id})
+    if not agendamento:
+        return jsonify({"erro": "Agendamento não encontrado"}), 404
+
+    # Verificar se pertence ao cliente
+    if agendamento["cliente_id"] != cliente_obj_id:
+        return jsonify({"erro": "Não autorizado a cancelar este agendamento"}), 403
+
+    # Verificar se pode ser cancelado
+    if agendamento["status"] != "pendente":
+        return jsonify({"erro": "Apenas agendamentos pendentes podem ser cancelados"}), 400
+
+    # Cancelar o agendamento
+    resultado = agendamentos.update_one(
+        {"_id": obj_id},
+        {
+            "$set": {
+                "status": "cancelado",
+                "atualizado_em": datetime.now()
+            }
+        }
+    )
+
+    if resultado.modified_count == 0:
+        return jsonify({"erro": "Erro ao cancelar agendamento"}), 500
+
+    # Log de sucesso
+    print(f"✅ Agendamento {agendamento_id} cancelado pelo cliente {cliente_id}")
+
+    return jsonify({
+        "mensagem": "Agendamento cancelado com sucesso",
+        "agendamento_id": agendamento_id
+    }), 200
+
+@app.route("/agendamentos/<agendamento_id>/observacoes", methods=["PATCH"])
+def atualizar_observacoes_agendamento(agendamento_id):
+    """Atualiza observações de um agendamento"""
+    try:
+        obj_id = ObjectId(agendamento_id)
+    except Exception:
+        return jsonify({"erro": "ID de agendamento inválido"}), 400
+
+    dados = request.json or {}
+    cliente_id = dados.get("cliente_id")
+    observacoes = dados.get("observacoes")
+
+    if not cliente_id or observacoes is None:
+        return jsonify({"erro": "ID do cliente e observações são obrigatórios"}), 400
+
+    try:
+        cliente_obj_id = ObjectId(cliente_id)
+    except Exception:
+        return jsonify({"erro": "ID de cliente inválido"}), 400
+
+    # Buscar o agendamento
+    agendamento = agendamentos.find_one({"_id": obj_id})
+    if not agendamento:
+        return jsonify({"erro": "Agendamento não encontrado"}), 404
+
+    # Verificar se pertence ao cliente
+    if agendamento["cliente_id"] != cliente_obj_id:
+        return jsonify({"erro": "Não autorizado a atualizar este agendamento"}), 403
+
+    # Verificar se pode ser editado
+    if agendamento["status"] != "pendente":
+        return jsonify({"erro": "Apenas agendamentos pendentes podem ser editados"}), 400
+
+    # Atualizar observações
+    resultado = agendamentos.update_one(
+        {"_id": obj_id},
+        {
+            "$set": {
+                "observacoes": observacoes,
+                "atualizado_em": datetime.now()
+            }
+        }
+    )
+
+    if resultado.modified_count == 0:
+        return jsonify({"erro": "Erro ao atualizar observações"}), 500
+
+    # Log de sucesso
+    print(f"✅ Observações atualizadas para agendamento {agendamento_id}")
+
+    return jsonify({
+        "mensagem": "Observações atualizadas com sucesso",
+        "agendamento_id": agendamento_id
+    }), 200
+
+# ✅ NOVO: Rota para reagendamento
+@app.route("/agendamentos/<agendamento_id>/reagendar", methods=["PATCH"])
+def reagendar_agendamento(agendamento_id):
+    """Permite reagendar um agendamento existente"""
+    try:
+        obj_id = ObjectId(agendamento_id)
+    except Exception:
+        return jsonify({"erro": "ID de agendamento inválido"}), 400
+
+    # Buscar o agendamento
+    agendamento = agendamentos.find_one({"_id": obj_id})
+    if not agendamento:
+        return jsonify({"erro": "Agendamento não encontrado"}), 404
+
+    dados = request.json or {}
+    nova_data = dados.get("nova_data")
+    nova_hora = dados.get("nova_hora")
+
+    if not nova_data or not nova_hora:
+        return jsonify({"erro": "Nova data e hora são obrigatórias"}), 400
+
+    # Validar formato da data
+    try:
+        data = datetime.fromisoformat(nova_data.replace('Z', '+00:00'))
+        if data < datetime.now():
+            return jsonify({"erro": "Não é possível reagendar para datas passadas"}), 400
+    except ValueError:
+        return jsonify({"erro": "Formato de data inválido"}), 400
+
+    # Validar formato da hora (HH:MM)
+    if not re.match(r'^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$', nova_hora):
+        return jsonify({"erro": "Formato de hora inválido. Use HH:MM"}), 400
+
+    # Verificar se não há conflito de horário para o mesmo cliente
+    conflito = agendamentos.find_one({
+        "_id": {"$ne": obj_id},  # Excluir o agendamento atual
+        "cliente_id": agendamento["cliente_id"],
+        "data_solicitada": data,
+        "hora_solicitada": nova_hora,
+        "status": {"$in": ["pendente", "confirmado"]}
+    })
+
+    if conflito:
+        return jsonify({"erro": "Já existe um agendamento para esta data e horário"}), 400
+
+    # Atualizar o agendamento
+    resultado = agendamentos.update_one(
+        {"_id": obj_id},
+        {
+            "$set": {
+                "data_solicitada": data,
+                "hora_solicitada": nova_hora,
+                "atualizado_em": datetime.now(),
+                "status": "pendente"  # Volta para pendente para aprovação
+            }
+        }
+    )
+
+    if resultado.modified_count == 0:
+        return jsonify({"erro": "Erro ao reagendar agendamento"}), 500
+
+    # ✅ NOVO: Criar notificação automática de reagendamento
+    data_formatada = data.strftime("%d/%m/%Y")
+    hora_formatada = nova_hora
+    criar_notificacao_automatica(
+        cliente_id=str(agendamento["cliente_id"]),
+        tipo="agendamento",
+        titulo="🔄 Agendamento Reagendado",
+        mensagem=f"Seu agendamento foi reagendado para {data_formatada} às {hora_formatada}. Aguarde a confirmação do terapeuta."
+    )
+
+    # Log de sucesso
+    print(f"✅ Agendamento {agendamento_id} reagendado para {nova_data} {nova_hora}")
+
+    return jsonify({
+        "mensagem": "Agendamento reagendado com sucesso!",
+        "agendamento_id": agendamento_id,
+        "nova_data": nova_data,
+        "nova_hora": nova_hora
+    }), 200
+
+# ===== ROTAS PARA TERAPEUTAS (PRÓXIMA SPRINT) =====
+
+@app.route("/agendamentos/pendentes", methods=["GET"])
+def buscar_agendamentos_pendentes():
+    """Busca todos os agendamentos pendentes (para terapeutas)"""
+    try:
+        # Buscar agendamentos pendentes
+        agendamentos_pendentes = list(agendamentos.find({"status": "pendente"})
+            .sort([("data_solicitada", 1), ("hora_solicitada", 1)]))
+        
+        # Converter ObjectIds para string e popular dados do cliente
+        for agendamento in agendamentos_pendentes:
+            agendamento["_id"] = str(agendamento["_id"])
+            agendamento["cliente_id"] = str(agendamento["cliente_id"])
+            
+            # Buscar dados básicos do cliente
+            cliente = clientes.find_one({"_id": ObjectId(agendamento["cliente_id"])})
+            if cliente:
+                agendamento["cliente"] = {
+                    "nome": cliente.get("nome", ""),
+                    "email": cliente.get("email", ""),
+                    "telefone": cliente.get("telefone", "")
+                }
+
+        # Log de sucesso
+        print(f"✅ {len(agendamentos_pendentes)} agendamentos pendentes encontrados")
+
+        return jsonify({
+            "mensagem": "Agendamentos pendentes encontrados",
+            "agendamentos": agendamentos_pendentes,
+            "total": len(agendamentos_pendentes)
+        }), 200
+
+    except Exception as error:
+        print(f"❌ Erro ao buscar agendamentos pendentes: {error}")
+        return jsonify({"erro": "Erro interno do servidor"}), 500
+
+@app.route("/agendamentos/<agendamento_id>/confirmar", methods=["PATCH"])
+def confirmar_agendamento(agendamento_id):
+    """Confirma um agendamento (para terapeutas)"""
+    try:
+        obj_id = ObjectId(agendamento_id)
+    except Exception:
+        return jsonify({"erro": "ID de agendamento inválido"}), 400
+
+    dados = request.json or {}
+    terapeuta_id = dados.get("terapeuta_id")
+
+    if not terapeuta_id:
+        return jsonify({"erro": "ID do terapeuta é obrigatório"}), 400
+
+    try:
+        terapeuta_obj_id = ObjectId(terapeuta_id)
+    except Exception:
+        return jsonify({"erro": "ID de terapeuta inválido"}), 400
+
+    # Buscar o agendamento
+    agendamento = agendamentos.find_one({"_id": obj_id})
+    if not agendamento:
+        return jsonify({"erro": "Agendamento não encontrado"}), 404
+
+    if agendamento["status"] != "pendente":
+        return jsonify({"erro": "Apenas agendamentos pendentes podem ser confirmados"}), 400
+
+    # Confirmar o agendamento
+    resultado = agendamentos.update_one(
+        {"_id": obj_id},
+        {
+            "$set": {
+                "status": "confirmado",
+                "terapeuta_id": terapeuta_obj_id,
+                "data_confirmacao": datetime.now(),
+                "atualizado_em": datetime.now()
+            }
+        }
+    )
+
+    if resultado.modified_count == 0:
+        return jsonify({"erro": "Erro ao confirmar agendamento"}), 500
+
+    # ✅ NOVO: Criar notificação automática de confirmação
+    data_formatada = agendamento["data_solicitada"].strftime("%d/%m/%Y")
+    hora_formatada = agendamento["hora_solicitada"]
+    criar_notificacao_automatica(
+        cliente_id=str(agendamento["cliente_id"]),
+        tipo="agendamento",
+        titulo="✅ Agendamento Confirmado!",
+        mensagem=f"Seu agendamento para {data_formatada} às {hora_formatada} foi confirmado! O terapeuta está aguardando você. Chegue com 10 minutos de antecedência."
+    )
+
+    # Log de sucesso
+    print(f"✅ Agendamento {agendamento_id} confirmado pelo terapeuta {terapeuta_id}")
+
+    return jsonify({
+        "mensagem": "Agendamento confirmado com sucesso",
+        "agendamento_id": agendamento_id
+    }), 200
+
+@app.route("/agendamentos/<agendamento_id>/rejeitar", methods=["PATCH"])
+def rejeitar_agendamento(agendamento_id):
+    """Rejeita um agendamento (para terapeutas)"""
+    try:
+        obj_id = ObjectId(agendamento_id)
+    except Exception:
+        return jsonify({"erro": "ID de agendamento inválido"}), 400
+
+    dados = request.json or {}
+    terapeuta_id = dados.get("terapeuta_id")
+    motivo = dados.get("motivo")
+
+    if not terapeuta_id or not motivo:
+        return jsonify({"erro": "ID do terapeuta e motivo são obrigatórios"}), 400
+
+    try:
+        terapeuta_obj_id = ObjectId(terapeuta_id)
+    except Exception:
+        return jsonify({"erro": "ID de terapeuta inválido"}), 400
+
+    # Buscar o agendamento
+    agendamento = agendamentos.find_one({"_id": obj_id})
+    if not agendamento:
+        return jsonify({"erro": "Agendamento não encontrado"}), 404
+
+    if agendamento["status"] != "pendente":
+        return jsonify({"erro": "Apenas agendamentos pendentes podem ser rejeitados"}), 400
+
+    # Rejeitar o agendamento
+    resultado = agendamentos.update_one(
+        {"_id": obj_id},
+        {
+            "$set": {
+                "status": "rejeitado",
+                "terapeuta_id": terapeuta_obj_id,
+                "motivo_rejeicao": motivo,
+                "atualizado_em": datetime.now()
+            }
+        }
+    )
+
+    if resultado.modified_count == 0:
+        return jsonify({"erro": "Erro ao rejeitar agendamento"}), 500
+
+    # ✅ NOVO: Criar notificação automática de rejeição
+    data_formatada = agendamento["data_solicitada"].strftime("%d/%m/%Y")
+    hora_formatada = agendamento["hora_solicitada"]
+    criar_notificacao_automatica(
+        cliente_id=str(agendamento["cliente_id"]),
+        tipo="agendamento",
+        titulo="❌ Agendamento Não Confirmado",
+        mensagem=f"Infelizmente seu agendamento para {data_formatada} às {hora_formatada} não pôde ser confirmado. Motivo: {motivo}. Entre em contato para reagendar."
+    )
+
+    # Log de sucesso
+    print(f"✅ Agendamento {agendamento_id} rejeitado pelo terapeuta {terapeuta_id}")
+
+    return jsonify({
+        "mensagem": "Agendamento rejeitado com sucesso",
+        "agendamento_id": agendamento_id
+    }), 200
+
 # ===== SISTEMA DE FEEDBACK =====
 
 @app.route("/feedback", methods=["POST"])
 def criar_feedback():
-    """Cria novo feedback do cliente"""
+    """Cria um novo feedback do cliente"""
     try:
         data = request.json or {}
         
         # Validar dados obrigatórios
         cliente_id = data.get("cliente_id")
-        avaliacao = data.get("avaliacao")
+        rating = data.get("rating")
+        comentarios = data.get("comentarios", "")
         
-        if not cliente_id or not avaliacao:
-            return jsonify({"erro": "cliente_id e avaliacao são obrigatórios"}), 400
-        
-        # Validar range da avaliação
-        if not isinstance(avaliacao, int) or avaliacao < 1 or avaliacao > 5:
-            return jsonify({"erro": "Avaliação deve ser um número inteiro entre 1 e 5"}), 400
+        if not cliente_id:
+            return jsonify({"erro": "ID do cliente é obrigatório"}), 400
+            
+        if not rating or not isinstance(rating, int) or rating < 1 or rating > 5:
+            return jsonify({"erro": "Rating deve ser um número de 1 a 5"}), 400
         
         # Validar se o cliente existe
         try:
             cliente_obj_id = ObjectId(cliente_id)
         except Exception:
-            return jsonify({"erro": "ID de cliente inválido"}), 400
-        
-        cliente_existe = clientes.find_one({"_id": cliente_obj_id})
-        if not cliente_existe:
+            return jsonify({"erro": "ID do cliente inválido"}), 400
+            
+        cliente_existente = clientes.find_one({"_id": cliente_obj_id})
+        if not cliente_existente:
             return jsonify({"erro": "Cliente não encontrado"}), 404
         
-        # Preparar dados do feedback
+        # Criar o feedback
         feedback_data = {
             "cliente_id": cliente_obj_id,
-            "avaliacao": avaliacao,
-            "comentarios": data.get("comentarios", ""),
-            "data_envio": datetime.now(),
-            "tipo": data.get("tipo", "experiencia_plataforma"),
-            "status": "ativo",
+            "rating": rating,
+            "comentarios": comentarios,
             "criado_em": datetime.now(),
             "atualizado_em": datetime.now()
         }
         
-        # Inserir feedback no banco
         resultado = feedback.insert_one(feedback_data)
         
         if not resultado.inserted_id:
-            return jsonify({"erro": "Erro ao salvar feedback"}), 500
+            return jsonify({"erro": "Erro ao criar feedback"}), 500
         
         # Log de sucesso
-        print(f"✅ Feedback criado: Cliente {cliente_id}, Avaliação: {avaliacao}")
-        
-        # Retornar resposta de sucesso
-        feedback_criado = {
-            "id": str(resultado.inserted_id),
-            "cliente_id": cliente_id,
-            "avaliacao": avaliacao,
-            "comentarios": feedback_data["comentarios"],
-            "data_envio": feedback_data["data_envio"].isoformat(),
-            "tipo": feedback_data["tipo"],
-            "status": feedback_data["status"]
-        }
+        print(f"✅ Feedback criado com sucesso para cliente {cliente_id}")
         
         return jsonify({
-            "success": True,
-            "message": "Feedback enviado com sucesso!",
-            "data": feedback_criado
+            "mensagem": "Feedback enviado com sucesso!",
+            "feedback_id": str(resultado.inserted_id),
+            "rating": rating,
+            "comentarios": comentarios
         }), 201
         
     except Exception as error:
@@ -868,26 +1590,25 @@ def buscar_feedback_cliente(cliente_id):
         try:
             cliente_obj_id = ObjectId(cliente_id)
         except Exception:
-            return jsonify({"erro": "ID de cliente inválido"}), 400
+            return jsonify({"erro": "ID do cliente inválido"}), 400
         
         # Buscar feedback do cliente
-        feedback_lista = list(feedback.find({"cliente_id": cliente_obj_id}).sort("data_envio", -1))
+        feedbacks_cliente = list(feedback.find({"cliente_id": cliente_obj_id}).sort("criado_em", -1))
         
         # Converter ObjectIds para string
-        for fb in feedback_lista:
+        for fb in feedbacks_cliente:
             fb["_id"] = str(fb["_id"])
             fb["cliente_id"] = str(fb["cliente_id"])
-            fb["data_envio"] = fb["data_envio"].isoformat()
             fb["criado_em"] = fb["criado_em"].isoformat()
             fb["atualizado_em"] = fb["atualizado_em"].isoformat()
         
         # Log de sucesso
-        print(f"✅ Feedback do cliente {cliente_id} encontrado: {len(feedback_lista)} registros")
+        print(f"✅ {len(feedbacks_cliente)} feedback(s) encontrado(s) para cliente {cliente_id}")
         
         return jsonify({
-            "success": True,
-            "message": "Feedback obtido com sucesso",
-            "data": feedback_lista
+            "mensagem": "Feedbacks encontrados com sucesso",
+            "feedbacks": feedbacks_cliente,
+            "total": len(feedbacks_cliente)
         }), 200
         
     except Exception as error:
@@ -896,100 +1617,127 @@ def buscar_feedback_cliente(cliente_id):
 
 @app.route("/feedback/estatisticas", methods=["GET"])
 def obter_estatisticas_feedback():
-    """Obtém estatísticas gerais de feedback"""
+    """Obtém estatísticas gerais dos feedbacks"""
     try:
-        # Contar total de feedbacks
         total = feedback.count_documents({})
         
-        # Calcular média de avaliação
-        pipeline = [
-            {"$group": {"_id": None, "media": {"$avg": "$avaliacao"}}}
-        ]
-        resultado_media = list(feedback.aggregate(pipeline))
-        media_avaliacao = round(resultado_media[0]["media"], 2) if resultado_media else 0
+        if total == 0:
+            return jsonify({
+                "mensagem": "Nenhum feedback encontrado",
+                "estatisticas": {
+                    "total": 0,
+                    "media_rating": 0,
+                    "distribuicao": {},
+                    "total_comentarios": 0
+                }
+            }), 200
         
-        # Contar por avaliação
+        # Calcular média de rating
+        pipeline = [
+            {"$group": {
+                "_id": None,
+                "media_rating": {"$avg": "$rating"},
+                "total_comentarios": {"$sum": {"$cond": [{"$ne": ["$comentarios", ""]}, 1, 0]}}
+            }}
+        ]
+        
+        resultado = list(feedback.aggregate(pipeline))
+        if resultado:
+            media_rating = round(resultado[0]["media_rating"], 1)
+            total_comentarios = resultado[0]["total_comentarios"]
+        else:
+            media_rating = 0
+            total_comentarios = 0
+        
+        # Distribuição de ratings
         pipeline_distribuicao = [
-            {"$group": {"_id": "$avaliacao", "count": {"$sum": 1}}},
+            {"$group": {"_id": "$rating", "count": {"$sum": 1}}},
             {"$sort": {"_id": 1}}
         ]
-        distribuicao = list(feedback.aggregate(pipeline_distribuicao))
         
-        # Formatar distribuição
-        distribuicao_formatada = {str(i): 0 for i in range(1, 6)}
-        for item in distribuicao:
-            distribuicao_formatada[str(item["_id"])] = item["count"]
+        distribuicao_resultado = list(feedback.aggregate(pipeline_distribuicao))
+        distribuicao = {}
+        for item in distribuicao_resultado:
+            distribuicao[str(item["_id"])] = item["count"]
         
         estatisticas = {
             "total": total,
-            "media_avaliacao": media_avaliacao,
-            "distribuicao": distribuicao_formatada
+            "media_rating": media_rating,
+            "distribuicao": distribuicao,
+            "total_comentarios": total_comentarios
         }
         
         # Log de sucesso
-        print(f"✅ Estatísticas de feedback obtidas: {total} total, média {media_avaliacao}")
+        print(f"✅ Estatísticas de feedback obtidas: {total} total, média {media_rating}")
         
         return jsonify({
-            "success": True,
-            "message": "Estatísticas obtidas com sucesso",
-            "data": estatisticas
+            "mensagem": "Estatísticas obtidas com sucesso",
+            "estatisticas": estatisticas
         }), 200
         
+    except Exception as error:
+        print(f"❌ Erro ao obter estatísticas de feedback: {error}")
+        return jsonify({"erro": "Erro interno do servidor"}), 500
+
+# ===== ROTAS UTILITÁRIAS =====
+
+@app.route("/agendamentos/<agendamento_id>", methods=["GET"])
+def buscar_agendamento_por_id(agendamento_id):
+    """Busca agendamento específico por ID"""
+    try:
+        obj_id = ObjectId(agendamento_id)
+    except Exception:
+        return jsonify({"erro": "ID de agendamento inválido"}), 400
+
+    # Buscar o agendamento
+    agendamento = agendamentos.find_one({"_id": obj_id})
+    if not agendamento:
+        return jsonify({"erro": "Agendamento não encontrado"}), 404
+
+    # Converter ObjectIds para string
+    agendamento["_id"] = str(agendamento["_id"])
+    agendamento["cliente_id"] = str(agendamento["cliente_id"])
+
+    # Log de sucesso
+    print(f"✅ Agendamento {agendamento_id} encontrado")
+
+    return jsonify({
+        "mensagem": "Agendamento encontrado com sucesso",
+        "agendamento": agendamento
+    }), 200
+
+@app.route("/agendamentos/estatisticas/geral", methods=["GET"])
+def obter_estatisticas_agendamentos():
+    """Obtém estatísticas básicas dos agendamentos"""
+    try:
+        total = agendamentos.count_documents({})
+        pendentes = agendamentos.count_documents({"status": "pendente"})
+        confirmados = agendamentos.count_documents({"status": "confirmado"})
+        cancelados = agendamentos.count_documents({"status": "cancelado"})
+        rejeitados = agendamentos.count_documents({"status": "rejeitado"})
+
+        percentual_confirmacao = (confirmados / total * 100) if total > 0 else 0
+
+        estatisticas = {
+            "total": total,
+            "pendentes": pendentes,
+            "confirmados": confirmados,
+            "cancelados": cancelados,
+            "rejeitados": rejeitados,
+            "percentual_confirmacao": round(percentual_confirmacao, 1)
+        }
+
+        # Log de sucesso
+        print(f"✅ Estatísticas obtidas: {total} total, {pendentes} pendentes")
+
+        return jsonify({
+            "mensagem": "Estatísticas obtidas com sucesso",
+            "estatisticas": estatisticas
+        }), 200
+
     except Exception as error:
         print(f"❌ Erro ao obter estatísticas: {error}")
         return jsonify({"erro": "Erro interno do servidor"}), 500
 
-# ===== SISTEMA DE SESSÕES =====
-
-@app.route("/sessoes/cliente/<cliente_id>", methods=["GET"])
-def buscar_sessoes_cliente(cliente_id):
-    """Busca sessões de um cliente específico"""
-    try:
-        # Validar ID do cliente
-        try:
-            cliente_obj_id = ObjectId(cliente_id)
-        except Exception:
-            return jsonify({"erro": "ID de cliente inválido"}), 400
-        
-        # Verificar se o cliente existe
-        cliente_existe = clientes.find_one({"_id": cliente_obj_id})
-        if not cliente_existe:
-            return jsonify({"erro": "Cliente não encontrado"}), 404
-        
-        # Buscar sessões do cliente (por enquanto, vamos usar agendamentos como base)
-        # Em um sistema real, você teria uma coleção específica de sessões
-        agendamentos_cliente = list(agendamentos.find({
-            "cliente_id": cliente_obj_id,
-            "status": {"$in": ["realizada", "confirmada", "agendada"]}
-        }).sort("data", -1))
-        
-        # Converter para formato de sessões
-        sessoes_lista = []
-        for agendamento in agendamentos_cliente:
-            sessao = {
-                "_id": str(agendamento["_id"]),
-                "cliente_id": str(agendamento["cliente_id"]),
-                "terapeuta_id": str(agendamento["terapeuta_id"]) if "terapeuta_id" in agendamento else None,
-                "data_agendada": agendamento["data"].isoformat() if "data" in agendamento else None,
-                "horario": agendamento.get("horario", ""),
-                "status": agendamento["status"],
-                "observacoes": agendamento.get("observacoes", ""),
-                "tipo_sessao": "terapia_integrativa",
-                "duracao": "60",  # minutos
-                "valor": "150.00",  # reais
-                "criado_em": agendamento.get("data_criacao", datetime.now()).isoformat(),
-                "atualizado_em": agendamento.get("data_atualizacao", datetime.now()).isoformat()
-            }
-            sessoes_lista.append(sessao)
-        
-        # Log de sucesso
-        print(f"✅ Sessões do cliente {cliente_id} encontradas: {len(sessoes_lista)} registros")
-        
-        return jsonify(sessoes_lista), 200
-        
-    except Exception as error:
-        print(f"❌ Erro ao buscar sessões: {error}")
-        return jsonify({"erro": "Erro interno do servidor"}), 500
-
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0")
+    app.run(debug=True, host="0.0.0.0", port=5001)
