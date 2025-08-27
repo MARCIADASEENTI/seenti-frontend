@@ -1,0 +1,49 @@
+# env_config_example.txt - Configuração de Ambiente Seenti
+# Sprint 08 - Configuração de Ambiente
+
+# =============================================================================
+# CONFIGURAÇÕES CRÍTICAS (OBRIGATÓRIAS)
+# =============================================================================
+
+# MongoDB Atlas - URI de conexão
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
+
+# JWT - Chave secreta para tokens (mínimo 32 caracteres)
+JWT_SECRET_KEY=your_super_secret_jwt_key_minimum_32_characters_long_for_security
+
+# Google OAuth - Credenciais para autenticação
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+
+# =============================================================================
+# CONFIGURAÇÕES IMPORTANTES (RECOMENDADAS)
+# =============================================================================
+
+# Flask - Ambiente de execução
+FLASK_ENV=development
+FLASK_DEBUG=True
+
+# CORS - Origens permitidas
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000,https://yourdomain.com
+
+# =============================================================================
+# INSTRUÇÕES DE USO
+# =============================================================================
+
+# 1. Copie este arquivo para .env
+#    cp env_config_example.txt .env
+#
+# 2. Configure as variáveis com seus valores reais
+# 3. NUNCA commite o arquivo .env no Git
+# 4. Use .env.local para configurações locais
+# 5. Use .env.production para produção
+
+# =============================================================================
+# VALORES DE EXEMPLO PARA DESENVOLVIMENTO
+# =============================================================================
+
+# Para desenvolvimento local, você pode usar:
+# MONGO_URI=mongodb://localhost:27017/seenti_dev
+# JWT_SECRET_KEY=dev_secret_key_32_chars_minimum_required
+# GOOGLE_CLIENT_ID=dev_client_id
+# GOOGLE_CLIENT_SECRET=dev_client_secret

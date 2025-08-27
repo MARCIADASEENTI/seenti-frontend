@@ -22,6 +22,8 @@ import HistoricoSessoes from "./HistoricoSessoes";
 import ConfiguracoesCliente from "./ConfiguracoesCliente";
 import NotificacoesCliente from "./NotificacoesCliente";
 import TestFeedback from "../TestFeedback";
+import SeentiThemeDemo from "../demo/SeentiThemeDemo";
+import FaleComTerapeuta from "./FaleComTerapeuta";
 
 export default function RouterCliente({ isAuthenticated }) {
   const navigate = useNavigate();
@@ -42,7 +44,7 @@ export default function RouterCliente({ isAuthenticated }) {
           if (clienteId) {
             // ✅ Usuário tem cliente cadastrado - verificar se precisa redirecionar
             const currentPath = window.location.pathname;
-            const rotasValidas = ['/perfil', '/anamnese', '/agendamentos', '/historico', '/configuracoes', '/notificacoes'];
+            const rotasValidas = ['/perfil', '/anamnese', '/agendamentos', '/historico', '/configuracoes', '/notificacoes', '/fale-com-terapeuta'];
             
             if (!rotasValidas.includes(currentPath)) {
               // ❌ Usuário está em rota inválida - redirecionar para perfil
@@ -164,6 +166,22 @@ export default function RouterCliente({ isAuthenticated }) {
           <NotificacoesCliente />
         </PerfilClienteLayout>
       } />
+      
+      {/* Hub Dinâmico - Fale Com Terapeuta */}
+      <Route path="/fale-com-terapeuta" element={
+        <PerfilClienteLayout>
+          <FaleComTerapeuta />
+        </PerfilClienteLayout>
+      } />
+      
+      {/* Rota de teste do tema - APENAS EM DESENVOLVIMENTO */}
+      {process.env.NODE_ENV === 'development' && (
+        <Route path="/teste-tema" element={
+          <WhiteLabelLayout>
+            <SeentiThemeDemo />
+          </WhiteLabelLayout>
+        } />
+      )}
       
       {/* Rota de teste temporária - APENAS EM DESENVOLVIMENTO */}
       {process.env.NODE_ENV === 'development' && (

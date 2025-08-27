@@ -281,12 +281,12 @@ export default function PaginaCliente() {
     <div className="min-h-full">
       {/* Controles de dados pessoais */}
       <div className="mb-3 md:mb-4 flex justify-center">
-        <button
-          onClick={() => setMostrarDados(!mostrarDados)}
-          className="w-full md:w-auto px-3 py-2 md:px-4 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs md:text-sm font-medium"
-        >
-          {mostrarDados ? '👁️‍🗨️ Ocultar Dados' : '👁️ Mostrar Dados Pessoais'}
-        </button>
+                  <button
+            onClick={() => setMostrarDados(!mostrarDados)}
+            className="w-full md:w-auto px-3 py-2 md:px-4 md:py-2 seenti-btn-primary text-xs md:text-sm font-medium"
+          >
+            {mostrarDados ? '👁️‍🗨️ Ocultar Dados' : '👁️ Mostrar Dados Pessoais'}
+          </button>
       </div>
 
       {loading && (
@@ -297,23 +297,27 @@ export default function PaginaCliente() {
       )}
       
       {erro && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 md:px-4 md:py-3 rounded-lg mb-4 md:mb-6 text-center text-sm md:text-base">
+        <div className="seenti-card seenti-bg-error text-white px-3 py-2 md:px-4 md:py-3 mb-4 md:mb-6 text-center text-sm md:text-base">
           {erro}
         </div>
       )}
 
       {cliente && (
         <>
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-4">
-              Olá, {cliente?.nome?.toUpperCase()}! Bem-vindo(a) de volta à sua jornada de bem-estar! ✅
+          <div className="text-center mb-4 md:mb-8">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold seenti-text-primary mb-3 md:mb-4 leading-tight">
+              Olá, {cliente?.nome_social ? cliente.nome_social.toUpperCase() : cliente?.primeiro_nome ? cliente.primeiro_nome.toUpperCase() : 'Cliente'}! Bem-vindo a de volta à sua jornada de bem-estar! ✅
             </h1>
-            <p className="text-gray-600 mb-2">Última atualização: {new Date().toLocaleTimeString()}</p>
-            {/* ✅ NOVO: Versão do sistema visível */}
-            <div className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
-              <span className="mr-2">🚀</span>
-              Sistema Seenti v1.0.0 - Sprint 07
-            </div>
+            {cliente?.nome_social ? (
+              <p className="text-lg seenti-text-secondary mb-2">
+                Nome Social: {cliente.nome_social}
+              </p>
+            ) : cliente?.primeiro_nome && cliente?.sobrenome ? (
+              <p className="text-lg seenti-text-secondary mb-2">
+                {cliente.primeiro_nome} {cliente.sobrenome}
+              </p>
+            ) : null}
+            <p className="seenti-text-secondary mb-2">Última atualização: {new Date().toLocaleTimeString()}</p>
           </div>
 
           {/* ✅ REMOVIDO: Seção de Status - Sprint 07 */}
@@ -321,9 +325,9 @@ export default function PaginaCliente() {
           {mostrarDados && (
             <section
               aria-labelledby="dados-pessoais-title"
-              className="bg-green-50 border border-green-200 p-3 md:p-4 rounded-lg mb-3 md:mb-4"
+              className="seenti-card seenti-bg-success p-3 md:p-4 mb-3 md:mb-4"
             >
-              <h3 id="dados-pessoais-title" className="font-bold mb-3 md:mb-4 text-green-700 text-base md:text-lg">
+              <h3 id="dados-pessoais-title" className="font-bold mb-3 md:mb-4 text-white text-base md:text-lg">
                 📋 Dados Pessoais
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 text-gray-800 text-sm md:text-base">
@@ -383,8 +387,8 @@ export default function PaginaCliente() {
           )}
 
           {/* Seção de Feedback para o Usuário */}
-          <section className="bg-[#1E3A8A]/10 border border-[#1E3A8A]/30 p-3 md:p-4 rounded-lg mb-3 md:mb-4">
-            <h3 className="font-bold mb-3 md:mb-4 text-[#1E3A8A] text-base md:text-lg">
+          <section className="seenti-card seenti-bg-primary p-3 md:p-4 mb-3 md:mb-4">
+            <h3 className="font-bold mb-3 md:mb-4 text-white text-base md:text-lg">
               💬 Sua Opinião é Importante
             </h3>
             
@@ -393,20 +397,20 @@ export default function PaginaCliente() {
                 <p className="text-green-700 font-medium mb-3 text-sm md:text-base">Obrigado pelo seu feedback!</p>
                 <button
                   onClick={resetarFeedback}
-                  className="px-3 py-2 bg-[#1E3A8A] text-white rounded-md hover:bg-[#1E3A8A]/80 transition-colors text-sm"
+                  className="px-3 py-2 seenti-btn-secondary text-sm"
                 >
                   Enviar Novo Feedback
                 </button>
               </div>
             ) : (
               <>
-                <p className="text-[#1E3A8A] mb-3 md:mb-4 text-xs md:text-sm">
+                <p className="seenti-text-primary mb-3 md:mb-4 text-xs md:text-sm">
                   Ajude-nos a melhorar sua experiência na plataforma. Como está sendo sua jornada até agora?
                 </p>
                 
                 <div className="space-y-3 md:space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-                    <span className="text-xs md:text-sm text-[#AC80DD] font-medium">Experiência geral:</span>
+                    <span className="text-xs md:text-sm seenti-text-secondary font-medium">Experiência geral:</span>
                     <div className="flex space-x-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -423,18 +427,18 @@ export default function PaginaCliente() {
                       ))}
                     </div>
                     {feedback.avaliacao > 0 && (
-                      <span className="text-xs text-[#AC80DD]">
+                      <span className="text-xs seenti-text-secondary">
                         ({feedback.avaliacao} estrela{feedback.avaliacao > 1 ? 's' : ''})
                       </span>
                     )}
                   </div>
                   
                   <div>
-                    <label className="block text-xs md:text-sm font-medium text-[#1E3A8A] mb-2">
+                    <label className="block text-xs md:text-sm font-medium seenti-text-primary mb-2">
                       Comentários ou sugestões:
                     </label>
                     <textarea
-                      className="w-full p-2 md:p-3 border border-[#1E3A8A]/30 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] resize-none text-xs md:text-sm"
+                      className="w-full p-2 md:p-3 border border-seenti-primary/30 rounded-md focus:outline-none focus:ring-2 focus:ring-seenti-primary resize-none text-xs md:text-sm"
                       rows="2"
                       placeholder="Conte-nos como podemos melhorar..."
                       value={feedback.comentarios}
@@ -462,8 +466,8 @@ export default function PaginaCliente() {
                       disabled={enviandoFeedback || feedback.avaliacao === 0}
                       className={`px-3 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
                         enviandoFeedback || feedback.avaliacao === 0
-                          ? 'bg-[#1E3A8A] cursor-not-allowed text-white'
-                          : 'bg-[#1E3A8A] hover:bg-[#1E3A8A]/80 text-white'
+                          ? 'seenti-btn-primary cursor-not-allowed'
+                          : 'seenti-btn-primary hover:opacity-80'
                       }`}
                     >
                       {enviandoFeedback ? (
@@ -483,53 +487,53 @@ export default function PaginaCliente() {
 
           <section
             aria-labelledby="funcionalidades-title"
-            className="bg-white border border-[#1E3A8A]/30 p-3 md:p-4 rounded-lg shadow-sm"
+            className="bg-white border border-seenti-primary/30 p-3 md:p-4 rounded-lg shadow-sm"
           >
-            <h3 id="funcionalidades-title" className="font-bold mb-3 md:mb-4 text-[#1E3A8A] text-base md:text-lg">
+            <h3 id="funcionalidades-title" className="font-bold mb-3 md:mb-4 seenti-text-primary text-base md:text-lg">
               🚀 Funcionalidades Disponíveis
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
               <button
                 onClick={handleNovaAnamnese}
-                className="p-2 md:p-3 border border-[#1E3A8A]/30 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all duration-200 text-left group"
+                className="p-2 md:p-3 border border-seenti-primary/30 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all duration-200 text-left group"
               >
                 <div className="flex items-center space-x-2 md:space-x-3">
                   <div className="w-5 h-5 md:w-6 md:h-6 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
                     <span className="text-green-600 text-sm md:text-base">📋</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-[#1E3A8A] group-hover:text-green-700 text-sm md:text-base">Nova Anamnese</h4>
-                    <p className="text-xs md:text-sm text-[#AC80DD]">Atualizar dados de saúde</p>
+                    <h4 className="font-semibold seenti-text-primary group-hover:text-green-700 text-sm md:text-base">Nova Anamnese</h4>
+                    <p className="text-xs md:text-sm seenti-text-secondary">Atualizar dados de saúde</p>
                   </div>
                 </div>
               </button>
 
               <button
                 onClick={() => navigate('/agendamentos')}
-                className="p-2 md:p-3 border border-[#1E3A8A]/30 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-left group"
+                className="p-2 md:p-3 border border-seenti-primary/30 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-left group"
               >
                 <div className="flex items-center space-x-2 md:space-x-3">
                   <div className="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                     <span className="text-blue-600 text-sm md:text-base">📅</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-[#1E3A8A] group-hover:text-blue-700 text-sm md:text-base">Agendamentos</h4>
-                    <p className="text-xs md:text-sm text-[#AC80DD]">Gerenciar consultas</p>
+                    <h4 className="font-semibold seenti-text-primary group-hover:text-blue-700 text-sm md:text-base">Agendamentos</h4>
+                    <p className="text-xs md:text-sm seenti-text-secondary">Gerenciar consultas</p>
                   </div>
                 </div>
               </button>
 
               <button
                 onClick={() => navigate('/historico')}
-                className="p-2 md:p-3 border border-[#1E3A8A]/30 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 text-left group"
+                className="p-2 md:p-3 border border-seenti-primary/30 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 text-left group"
               >
                 <div className="flex items-center space-x-2 md:space-x-3">
                   <div className="w-5 h-5 md:w-6 md:h-6 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
                     <span className="text-purple-600 text-sm md:text-base">📊</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-[#1E3A8A] group-hover:text-purple-700 text-sm md:text-base">Histórico</h4>
-                    <p className="text-xs md:text-sm text-[#AC80DD]">Sessões realizadas</p>
+                    <h4 className="font-semibold seenti-text-primary group-hover:text-purple-700 text-sm md:text-base">Histórico</h4>
+                    <p className="text-xs md:text-sm seenti-text-secondary">Sessões realizadas</p>
                   </div>
                 </div>
               </button>

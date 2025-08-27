@@ -11,10 +11,10 @@ const AnamneseCliente = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [anamneseExistente, setAnamneseExistente] = useState(false);
   const [mensagemAnamnese, setMensagemAnamnese] = useState('');
+  const [dadosCliente, setDadosCliente] = useState(null);
 
-  // ✅ MELHORADO: Cores da marca Seenti
-  const primaryColor = brand?.primaryColor || '#1E3A8A';
-  const secondaryColor = brand?.secondaryColor || '#AC80DD';
+  // ✅ PADRONIZADO: Usando tema Seenti oficial
+  // Removido hardcoded colors - usando classes CSS do tema
 
   // NOVA ESTRUTURA DE DADOS - REFATORADA Sprint 07
   const [form, setForm] = useState({
@@ -22,14 +22,10 @@ const AnamneseCliente = () => {
     dor_atual: '',
     nivel_dor: 5,
     historico_saude: {
-      pressao_alta: {
-        tem: false,
-        controle: ''
-      },
-      diabetes: {
-        tem: false,
-        controle: ''
-      },
+      pressao_alta: false,
+      diabetes: false,
+      pressao_alta_controle: '',
+      diabetes_controle: '',
       alergias: '',
       sintomas_pernas: ''
     },
@@ -69,6 +65,7 @@ const AnamneseCliente = () => {
           const responseCliente = await api.get(`/clientes/${cliente_id}`);
           if (responseCliente.status === 200) {
             const cliente = responseCliente.data;
+            setDadosCliente(cliente); // ✅ Armazenar dados do cliente para cabeçalho formal
             
             // Verificar se já existe anamnese para este cliente
             try {
@@ -143,16 +140,13 @@ const AnamneseCliente = () => {
       // Handle nested fields
       const [grupo, campo] = name.split('.');
       
-      if (name.includes('historico_saude.pressao_alta.tem') || name.includes('historico_saude.diabetes.tem')) {
-        const [grupo1, grupo2, campo] = name.split('.');
+      if (name.includes('historico_saude.pressao_alta') || name.includes('historico_saude.diabetes')) {
+        // Campos booleanos simples para pressão alta e diabetes
         setForm(prev => ({
           ...prev,
-          [grupo1]: {
-            ...prev[grupo1],
-            [grupo2]: {
-              ...prev[grupo1][grupo2],
-              [campo]: type === 'checkbox' ? checked : value
-            }
+          historico_saude: {
+            ...prev.historico_saude,
+            [campo]: type === 'checkbox' ? checked : value
           }
         }));
       } else {
@@ -222,8 +216,8 @@ const AnamneseCliente = () => {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E3A8A] mx-auto"></div>
-            <p className="mt-4 text-gray-600">Carregando anamnese...</p>
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-seenti-primary mx-auto"></div>
+          <p className="mt-4 seenti-text-secondary">Carregando anamnese...</p>
           </div>
         </div>
       </div>
@@ -234,15 +228,63 @@ const AnamneseCliente = () => {
     <div className="min-h-screen bg-gray-50 py-6 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* ✅ MELHORADO: Header Responsivo com Cores da Marca */}
-        <div className="mb-6 sm:mb-8 text-center sm:text-left">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#1E3A8A] mb-2">
-            📋 Formulário de Anamnese
-          </h1>
-          <p className="text-[#1E3A8A]/70 text-sm sm:text-base">
-            Informações essenciais para personalizar seu tratamento
-          </p>
+        {/* ✅ PADRONIZADO: Header com Tema Seenti */}
+        <div className="mb-6 sm:mb-8">
+          {/* ✅ NOVO: Botão Voltar ao Perfil */}
+          <div className="mb-4">
+            <button
+              onClick={() => navigate('/perfil')}
+              className="seenti-btn-secondary px-4 py-2 rounded-lg hover:seenti-hover-bg-secondary-dark transition-all duration-200 flex items-center space-x-2"
+            >
+              <span>←</span>
+              <span>Voltar ao Perfil</span>
+            </button>
+          </div>
+          
+          <div className="text-center sm:text-left">
+            <h1 className="text-2xl sm:text-3xl font-bold seenti-text-primary mb-2">
+              📋 Formulário de Anamnese
+            </h1>
+            <p className="seenti-text-secondary text-sm sm:text-base">
+              Informações essenciais para personalizar seu tratamento
+            </p>
+          </div>
         </div>
+
+        {/* ✅ OTIMIZADO: Cabeçalho Compacto com Dados do Cliente */}
+        {dadosCliente && (
+          <div className="mb-4 seenti-card p-3 sm:p-4">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium seenti-text-primary/70">👤</span>
+                <span className="font-medium seenti-text-primary">
+                  {dadosCliente.nome_social || `${dadosCliente.primeiro_nome || ''} ${dadosCliente.sobrenome || ''}`.trim() || 'Não informado'}
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium seenti-text-primary/70">🆔</span>
+                <span className="font-medium seenti-text-primary">
+                  {dadosCliente.cpf || 'Não informado'}
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium seenti-text-primary/70">📞</span>
+                <span className="font-medium seenti-text-primary">
+                  {dadosCliente.telefone || dadosCliente.celular || 'Não informado'}
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium seenti-text-primary/70">📅</span>
+                <span className="font-medium seenti-text-primary">
+                  {new Date().toLocaleDateString('pt-BR')}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ✅ MELHORADO: Mensagem de Status com Cores da Marca */}
         {anamneseExistente && (
@@ -281,16 +323,16 @@ const AnamneseCliente = () => {
         {/* ✅ MELHORADO: Formulário com Layout Responsivo e Cores da Marca */}
         <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
           
-          {/* ✅ MELHORADO: Seção 1 - Objetivo e Dor Atual */}
-          <div className="border rounded-lg p-4 sm:p-6 bg-white shadow-sm border-gray-200">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-[#1E3A8A] flex items-center">
+          {/* ✅ PADRONIZADO: Seção 1 - Objetivo e Dor Atual */}
+          <div className="seenti-card p-4 sm:p-6">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 seenti-text-primary flex items-center">
               <span className="mr-2">🎯</span>
               Objetivo e Dor Atual
             </h3>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <label className="block text-sm font-medium text-[#1E3A8A] mb-2 sm:mb-3">
+                <label className="block text-sm font-medium seenti-text-primary mb-2 sm:mb-3">
                   Objetivo Principal *
                 </label>
                 <input
@@ -299,8 +341,8 @@ const AnamneseCliente = () => {
                   value={form.objetivo}
                   onChange={handleChange}
                   placeholder="Ex: Relaxamento e redução de dores lombares"
-                  className={`w-full h-12 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] text-base transition-colors ${
-                    anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                  className={`w-full h-12 seenti-input ${
+                    anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   required
                   disabled={anamneseExistente}
@@ -308,7 +350,7 @@ const AnamneseCliente = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-[#1E3A8A] mb-2 sm:mb-3">
+                <label className="block text-sm font-medium seenti-text-primary mb-2 sm:mb-3">
                   Dor Atual *
                 </label>
                 <input
@@ -317,8 +359,8 @@ const AnamneseCliente = () => {
                   value={form.dor_atual}
                   onChange={handleChange}
                   placeholder="Ex: Lombar, ombros, pescoço"
-                  className={`w-full h-12 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] text-base transition-colors ${
-                    anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                  className={`w-full h-12 seenti-input ${
+                    anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   required
                   disabled={anamneseExistente}
@@ -328,11 +370,11 @@ const AnamneseCliente = () => {
 
             {/* ✅ MELHORADO: Escala de Dor Responsiva */}
             <div className="mt-6 sm:mt-8">
-              <label className="block text-sm font-medium text-[#1E3A8A] mb-3">
-                Nível de Dor (0-10): <span className="font-bold text-lg text-[#AC80DD]">{form.nivel_dor}</span>
+              <label className="block text-sm font-medium seenti-text-primary mb-3">
+                Nível de Dor (0-10): <span className="font-bold text-lg seenti-text-accent">{form.nivel_dor}</span>
               </label>
               <div className="flex items-center space-x-3">
-                <span className="text-xs text-[#1E3A8A]/70 font-medium">0</span>
+                <span className="text-xs seenti-text-primary/70 font-medium">0</span>
                 <input
                   type="range"
                   min="0"
@@ -343,13 +385,13 @@ const AnamneseCliente = () => {
                     anamneseExistente ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-200 hover:bg-gray-300'
                   }`}
                   style={{
-                    background: `linear-gradient(to right, #e5e7eb 0%, #e5e7eb ${(form.nivel_dor / 10) * 100}%, ${secondaryColor} ${(form.nivel_dor / 10) * 100}%, ${secondaryColor} 100%)`
+                    background: `linear-gradient(to right, #e5e7eb 0%, #e5e7eb ${(form.nivel_dor / 10) * 100}%, var(--seenti-accent) ${(form.nivel_dor / 10) * 100}%, var(--seenti-accent) 100%)`
                   }}
                   disabled={anamneseExistente}
                 />
-                <span className="text-xs text-[#1E3A8A]/70 font-medium">10</span>
+                <span className="text-xs seenti-text-primary/70 font-medium">10</span>
               </div>
-              <div className="flex justify-between text-xs text-[#1E3A8A]/60 mt-2">
+              <div className="flex justify-between text-xs seenti-text-primary/60 mt-2">
                 <span>Sem dor</span>
                 <span>Dor leve</span>
                 <span>Dor moderada</span>
@@ -359,40 +401,40 @@ const AnamneseCliente = () => {
           </div>
 
           {/* ✅ MELHORADO: Seção 2 - Histórico de Saúde */}
-          <div className="border rounded-lg p-4 sm:p-6 bg-white shadow-sm border-gray-200">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-[#1E3A8A] flex items-center">
+          <div className="seenti-card p-4 sm:p-6">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 seenti-text-primary flex items-center">
               <span className="mr-2">🏥</span>
               Histórico de Saúde
             </h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               {/* ✅ MELHORADO: Hipertensão */}
-              <div className="border rounded-lg p-4 bg-[#1E3A8A]/5 border-[#1E3A8A]/20">
+              <div className="seenti-card seenti-bg-primary/5 seenti-border-primary/20">
                 <label className="flex items-center space-x-3 cursor-pointer mb-3">
                   <input
                     type="checkbox"
-                    name="historico_saude.pressao_alta.tem"
-                    checked={form.historico_saude.pressao_alta.tem}
+                    name="historico_saude.pressao_alta"
+                    checked={form.historico_saude.pressao_alta}
                     onChange={handleChange}
-                    className={`w-5 h-5 text-[#1E3A8A] border-gray-300 rounded focus:ring-[#1E3A8A] focus:ring-2 ${
+                    className={`w-5 h-5 text-white border-white/50 rounded focus:ring-white focus:ring-2 ${
                       anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     disabled={anamneseExistente}
                   />
-                  <span className="text-sm font-medium text-[#1E3A8A]">Pressão Alta</span>
+                  <span className="text-sm font-medium seenti-text-primary">Pressão Alta</span>
                 </label>
                 
-                {form.historico_saude.pressao_alta.tem && (
+                {form.historico_saude.pressao_alta && (
                   <div className="ml-8">
-                    <label className="block text-sm text-[#1E3A8A]/80 mb-2">
+                    <label className="block text-sm seenti-text-primary/80 mb-2">
                       Controle:
                     </label>
                     <select
-                      name="historico_saude.pressao_alta.controle"
-                      value={form.historico_saude.pressao_alta.controle || ''}
+                      name="historico_saude.pressao_alta_controle"
+                      value={form.historico_saude.pressao_alta_controle || ''}
                       onChange={handleChange}
-                      className={`w-full h-12 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] transition-colors ${
-                        anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                      className={`w-full h-12 seenti-input text-sm ${
+                        anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                       required
                       disabled={anamneseExistente}
@@ -407,32 +449,32 @@ const AnamneseCliente = () => {
               </div>
               
               {/* ✅ MELHORADO: Diabetes */}
-              <div className="border rounded-lg p-4 bg-[#1E3A8A]/5 border-[#1E3A8A]/20">
+              <div className="seenti-card seenti-bg-primary/5 seenti-border-primary/20">
                 <label className="flex items-center space-x-3 cursor-pointer mb-3">
                   <input
                     type="checkbox"
-                    name="historico_saude.diabetes.tem"
-                    checked={form.historico_saude.diabetes.tem}
+                    name="historico_saude.diabetes"
+                    checked={form.historico_saude.diabetes}
                     onChange={handleChange}
-                    className={`w-5 h-5 text-[#1E3A8A] border-gray-300 rounded focus:ring-[#1E3A8A] focus:ring-2 ${
+                    className={`w-5 h-5 text-white border-white/50 rounded focus:ring-white focus:ring-2 ${
                       anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     disabled={anamneseExistente}
                   />
-                  <span className="text-sm font-medium text-[#1E3A8A]">Diabetes</span>
+                  <span className="text-sm font-medium seenti-text-primary">Diabetes</span>
                 </label>
                 
-                {form.historico_saude.diabetes.tem && (
+                {form.historico_saude.diabetes && (
                   <div className="ml-8">
-                    <label className="block text-sm text-[#1E3A8A]/80 mb-2">
+                    <label className="block text-sm seenti-text-primary/80 mb-2">
                       Controle:
                     </label>
                     <select
-                      name="historico_saude.diabetes.controle"
-                      value={form.historico_saude.diabetes.controle || ''}
+                      name="historico_saude.diabetes_controle"
+                      value={form.historico_saude.diabetes_controle || ''}
                       onChange={handleChange}
-                      className={`w-full h-12 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] transition-colors ${
-                        anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                      className={`w-full h-12 seenti-input text-sm ${
+                        anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                       required
                       disabled={anamneseExistente}
@@ -450,7 +492,7 @@ const AnamneseCliente = () => {
             {/* ✅ MELHORADO: Campos de texto para detalhes */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-6">
               <div>
-                <label className="block text-sm font-medium text-[#1E3A8A] mb-2 sm:mb-3">
+                <label className="block text-sm font-medium seenti-text-primary mb-2 sm:mb-3">
                   Detalhes das Alergias
                 </label>
                 <input
@@ -459,15 +501,15 @@ const AnamneseCliente = () => {
                   value={form.historico_saude.alergias}
                   onChange={handleChange}
                   placeholder="Ex: Medicamentos, alimentos, etc."
-                  className={`w-full h-12 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] text-base transition-colors ${
-                    anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                  className={`w-full h-12 seenti-input ${
+                    anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   disabled={anamneseExistente}
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-[#1E3A8A] mb-2 sm:mb-3">
+                <label className="block text-sm font-medium seenti-text-primary mb-2 sm:mb-3">
                   Sintomas nas Pernas
                 </label>
                 <input
@@ -476,8 +518,8 @@ const AnamneseCliente = () => {
                   value={form.historico_saude.sintomas_pernas}
                   onChange={handleChange}
                   placeholder="Ex: Inchaço, formigamento, etc."
-                  className={`w-full h-12 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] text-base transition-colors ${
-                    anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                  className={`w-full h-12 seenti-input ${
+                    anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   disabled={anamneseExistente}
                 />
@@ -486,23 +528,23 @@ const AnamneseCliente = () => {
           </div>
 
           {/* ✅ MELHORADO: Seção 3 - Hábitos e Alimentação */}
-          <div className="border rounded-lg p-4 sm:p-6 bg-white shadow-sm border-gray-200">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-[#1E3A8A] flex items-center">
+          <div className="seenti-card p-4 sm:p-6">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 seenti-text-primary flex items-center">
               <span className="mr-2">🍽️</span>
               Hábitos e Alimentação
             </h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               <div>
-                <label className="block text-sm font-medium text-[#1E3A8A] mb-2 sm:mb-3">
+                <label className="block text-sm font-medium seenti-text-primary mb-2 sm:mb-3">
                   Funcionamento Intestinal
                 </label>
                 <select
                   name="habitos.funcionamento_intestinal"
                   value={form.habitos.funcionamento_intestinal}
                   onChange={handleChange}
-                  className={`w-full h-12 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] text-base transition-colors ${
-                    anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                  className={`w-full h-12 seenti-input ${
+                    anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   required
                   disabled={anamneseExistente}
@@ -513,15 +555,15 @@ const AnamneseCliente = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-[#1E3A8A] mb-2 sm:mb-3">
+                <label className="block text-sm font-medium seenti-text-primary mb-2 sm:mb-3">
                   Qualidade da Alimentação
                 </label>
                 <select
                   name="habitos.alimentacao"
                   value={form.habitos.alimentacao}
                   onChange={handleChange}
-                  className={`w-full h-12 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] text-base transition-colors ${
-                    anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                  className={`w-full h-12 seenti-input ${
+                    anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   required
                   disabled={anamneseExistente}
@@ -533,7 +575,7 @@ const AnamneseCliente = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-[#1E3A8A] mb-2 sm:mb-3">
+                <label className="block text-sm font-medium seenti-text-primary mb-2 sm:mb-3">
                   Anticoncepcional
                 </label>
                 <input
@@ -542,15 +584,15 @@ const AnamneseCliente = () => {
                   value={form.habitos.anticoncepcional}
                   onChange={handleChange}
                   placeholder="Ex: Pílula, DIU, nenhum"
-                  className={`w-full h-12 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] text-base transition-colors ${
-                    anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                  className={`w-full h-12 seenti-input ${
+                    anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   disabled={anamneseExistente}
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-[#1E3A8A] mb-2 sm:mb-3">
+                <label className="block text-sm font-medium seenti-text-primary mb-2 sm:mb-3">
                   Gestante (semanas)
                 </label>
                 <input
@@ -561,8 +603,8 @@ const AnamneseCliente = () => {
                   placeholder="Ex: 12"
                   min="1"
                   max="40"
-                  className={`w-full h-12 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] text-base transition-colors ${
-                    anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                  className={`w-full h-12 seenti-input ${
+                    anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   disabled={anamneseExistente}
                 />
@@ -571,8 +613,8 @@ const AnamneseCliente = () => {
           </div>
 
           {/* ✅ MELHORADO: Seção 4 - Histórico Clínico */}
-          <div className="border rounded-lg p-4 sm:p-6 bg-white shadow-sm border-gray-200">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-[#1E3A8A] flex items-center">
+          <div className="seenti-card p-4 sm:p-6">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 seenti-text-primary flex items-center">
               <span className="mr-2">🩺</span>
               Histórico Clínico
             </h3>
@@ -594,12 +636,12 @@ const AnamneseCliente = () => {
                     name={name}
                     checked={form[name.split('.')[0]][name.split('.')[1]]}
                     onChange={handleChange}
-                    className={`w-4 h-4 text-[#1E3A8A] border-gray-300 rounded focus:ring-[#1E3A8A] focus:ring-2 ${
+                    className={`w-4 h-4 text-white border-white/50 rounded focus:ring-white focus:ring-2 ${
                       anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     disabled={anamneseExistente}
                   />
-                  <span className="text-sm text-[#1E3A8A] font-medium">{label}</span>
+                  <span className="text-sm seenti-text-primary font-medium">{label}</span>
                 </label>
               ))}
             </div>
@@ -607,7 +649,7 @@ const AnamneseCliente = () => {
             {/* ✅ MELHORADO: Campos de texto para condições específicas */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mt-6">
               <div>
-                <label className="block text-sm font-medium text-[#1E3A8A] mb-2 sm:mb-3">
+                <label className="block text-sm font-medium seenti-text-primary mb-2 sm:mb-3">
                   Distúrbio Renal
                 </label>
                 <input
@@ -616,15 +658,15 @@ const AnamneseCliente = () => {
                   value={form.historico_clinico.disturbio_renal}
                   onChange={handleChange}
                   placeholder="Ex: Insuficiência renal"
-                  className={`w-full h-12 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] text-base transition-colors ${
-                    anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                  className={`w-full h-12 seenti-input ${
+                    anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   disabled={anamneseExistente}
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-[#1E3A8A] mb-2 sm:mb-3">
+                <label className="block text-sm font-medium seenti-text-primary mb-2 sm:mb-3">
                   Antecedente Oncológico
                 </label>
                 <input
@@ -633,15 +675,15 @@ const AnamneseCliente = () => {
                   value={form.historico_clinico.antecedente_oncologico}
                   onChange={handleChange}
                   placeholder="Ex: Câncer de mama"
-                  className={`w-full h-12 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] text-base transition-colors ${
-                    anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                  className={`w-full h-12 seenti-input ${
+                    anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   disabled={anamneseExistente}
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-[#1E3A8A] mb-2 sm:mb-3">
+                <label className="block text-sm font-medium seenti-text-primary mb-2 sm:mb-3">
                   Doença Crônica
                 </label>
                 <input
@@ -650,8 +692,8 @@ const AnamneseCliente = () => {
                   value={form.historico_clinico.doenca_cronica}
                   onChange={handleChange}
                   placeholder="Ex: Hipertensão"
-                  className={`w-full h-12 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] text-base transition-colors ${
-                    anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                  className={`w-full h-12 seenti-input ${
+                    anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   disabled={anamneseExistente}
                 />
@@ -660,14 +702,14 @@ const AnamneseCliente = () => {
           </div>
 
           {/* ✅ MELHORADO: Seção 5 - Restrições */}
-          <div className="border rounded-lg p-4 sm:p-6 bg-white shadow-sm border-gray-200">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-[#1E3A8A] flex items-center">
+          <div className="seenti-card p-4 sm:p-6">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 seenti-text-primary flex items-center">
               <span className="mr-2">⚠️</span>
               Restrições e Áreas Sensíveis
             </h3>
             
             <div>
-              <label className="block text-sm font-medium text-[#1E3A8A] mb-2 sm:mb-3">
+              <label className="block text-sm font-medium seenti-text-primary mb-2 sm:mb-3">
                 Áreas que não gosta de massagem
               </label>
               <input
@@ -676,8 +718,8 @@ const AnamneseCliente = () => {
                 value={form.restricoes.nao_gosta_massagem_em}
                 onChange={handleChange}
                 placeholder="Ex: barriga, pés, rosto"
-                className={`w-full h-12 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#1E3A8A] focus:border-[#1E3A8A] text-base transition-colors ${
-                  anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#1E3A8A]/50'
+                className={`w-full h-12 seenti-input ${
+                  anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 disabled={anamneseExistente}
               />
@@ -685,14 +727,14 @@ const AnamneseCliente = () => {
           </div>
 
           {/* ✅ MELHORADO: Seção 6 - Conduta de Tratamento */}
-          <div className="border rounded-lg p-4 sm:p-6 bg-[#AC80DD]/10 border-[#AC80DD]/20">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-[#AC80DD] flex items-center">
+          <div className="border rounded-lg p-4 sm:p-6 seenti-bg-accent/10 border-[#AC80DD]/20">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 seenti-text-accent flex items-center">
               <span className="mr-2">🎯</span>
               Conduta de Tratamento Sugerida
             </h3>
             
             <div>
-              <label className="block text-sm font-medium text-[#AC80DD] mb-2 sm:mb-3">
+              <label className="block text-sm font-medium seenti-text-accent mb-2 sm:mb-3">
                 Descreva a conduta sugerida para o tratamento
               </label>
               <div className="mt-2">
@@ -702,81 +744,62 @@ const AnamneseCliente = () => {
                   onChange={handleChange}
                   placeholder="Ex: Massagem relaxante leve com foco em lombar e cervical, evitar pressão forte, técnicas suaves para relaxamento muscular"
                   rows="5"
-                  className={`w-full min-h-32 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#AC80DD] focus:border-[#AC80DD] resize-none text-base leading-relaxed transition-colors ${
-                    anamneseExistente ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-[#AC80DD]/50'
+                  className={`w-full min-h-32 seenti-input resize-none text-base leading-relaxed ${
+                    anamneseExistente ? 'opacity-50 cursor-not-allowed' : 'hover:border-[#AC80DD]/50'
                   }`}
                   disabled={anamneseExistente}
                 />
               </div>
-              <p className="text-xs text-[#AC80DD]/70 mt-2">
+              <p className="text-xs seenti-text-accent/70 mt-2">
                 💡 Dica: Seja específico sobre técnicas, intensidade e áreas de foco
               </p>
             </div>
           </div>
 
-          {/* ✅ MELHORADO: Seção 7 - Aceite dos Termos */}
-          <div className="border rounded-lg p-4 sm:p-6 bg-[#1E3A8A]/10 border-[#1E3A8A]/20">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-[#1E3A8A] flex items-center">
+          {/* ✅ PADRONIZADO: Seção 7 - Aceite dos Termos com Tema Seenti */}
+          <div className="seenti-card seenti-bg-primary p-4 sm:p-6">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-white flex items-center">
               <span className="mr-2">📋</span>
               Aceite dos Termos e Condições
             </h3>
             
             <div className="space-y-4">
-              {/* ✅ MELHORADO: DECLARAÇÃO PRIMEIRO */}
-              <div className="text-sm text-[#1E3A8A]/80 leading-relaxed bg-white p-4 rounded-lg border border-[#1E3A8A]/20">
-                <p className="text-[#1E3A8A]">
+              {/* ✅ PADRONIZADO: DECLARAÇÃO PRIMEIRO */}
+              <div className="text-sm text-white leading-relaxed bg-white/20 p-4 rounded-lg border border-white/30">
+                <p className="text-white">
                   <strong>Declaro que todas as informações fornecidas são verdadeiras e autorizo o profissional 
                   a realizar o tratamento conforme as informações fornecidas. Entendo que posso 
                   revogar esta autorização a qualquer momento.</strong>
                 </p>
               </div>
               
-              {/* ✅ MELHORADO: CHECKBOX E CONFIRMAÇÃO */}
+              {/* ✅ PADRONIZADO: CHECKBOX E CONFIRMAÇÃO */}
               <label className="flex items-center space-x-3 cursor-pointer">
                 <input
                   type="checkbox"
                   name="aceite_termo"
                   checked={form.aceite_termo}
                   onChange={handleChange}
-                  className={`w-5 h-5 text-[#1E3A8A] border-gray-300 rounded focus:ring-[#1E3A8A] focus:ring-2 ${
+                  className={`w-5 h-5 text-white border-white/50 rounded focus:ring-white focus:ring-2 ${
                     anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   required
                   disabled={anamneseExistente}
                 />
-                <span className="text-sm font-semibold text-[#1E3A8A]">
+                <span className="text-sm font-semibold text-white">
                   ✅ Aceito e autorizo o tratamento
                 </span>
               </label>
             </div>
           </div>
 
-          {/* ✅ MELHORADO: Botões de Ação Responsivos */}
-          <div className="flex flex-col sm:flex-row justify-between pt-6 gap-4 sm:gap-6">
-            <button
-              type="button"
-              onClick={() => navigate('/perfil')}
-              className="w-full sm:w-auto bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors text-sm sm:text-base font-medium"
-            >
-              ← Voltar ao Perfil
-            </button>
-            
+          {/* ✅ PADRONIZADO: Botões de Ação com Tema Seenti */}
+          <div className="flex justify-end pt-6">
             <button
               type="submit"
-              className={`w-full sm:w-auto px-6 py-3 rounded-lg text-white transition-colors text-sm sm:text-base font-medium ${
-                anamneseExistente ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'
+              className={`seenti-btn-primary px-6 py-3 text-sm sm:text-base font-medium ${
+                anamneseExistente ? 'opacity-50 cursor-not-allowed' : ''
               }`}
-              style={{ backgroundColor: anamneseExistente ? '#9CA3AF' : primaryColor }}
-              onMouseEnter={(e) => {
-                if (!anamneseExistente) {
-                  e.target.style.backgroundColor = secondaryColor;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!anamneseExistente) {
-                  e.target.style.backgroundColor = primaryColor;
-                }
-              }}
               disabled={loading || anamneseExistente}
             >
               {loading ? (

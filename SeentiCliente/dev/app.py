@@ -20,7 +20,10 @@ import ssl
 print("🔐 RENDER - OpenSSL version usada:", ssl.OPENSSL_VERSION)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "https://frontend-seenti-app.vercel.app"]}}, supports_credentials=True)
+
+# Configurar CORS com variável de ambiente
+cors_origins = os.getenv('CORS_ORIGINS', 'https://seenti-frontend.vercel.app,http://localhost:3000,http://localhost:5173').split(',')
+CORS(app, resources={r"/*": {"origins": cors_origins}}, supports_credentials=True)
 
 app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")

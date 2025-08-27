@@ -154,6 +154,14 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* ✅ MELHORAR CONTRASTE DO TEXTO "SEENTI" */
+.perfil-sidebar-header h2 {
+  color: #FFFFFF !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.025em !important;
+}
+
 .perfil-logo-container {
   width: 2.5rem;
   height: 2.5rem;

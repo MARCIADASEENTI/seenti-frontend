@@ -80,36 +80,43 @@ export default function TermoUso() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-4 md:mt-6 p-3 md:p-6 border rounded shadow bg-white">
-      <h2 className="text-lg md:text-2xl font-bold mb-3 md:mb-4 text-green-700 text-center md:text-left">
+    <div className="max-w-4xl mx-auto mt-4 md:mt-8 p-4 md:p-8 border border-seenti-gray-200 rounded-xl shadow-lg bg-white">
+      <h2 className="text-xl md:text-3xl font-bold mb-4 md:mb-6 seenti-text-primary text-center">
         Termo de Uso e Consentimento
       </h2>
-      {erro && <p className="text-red-600 mb-4 text-center md:text-left">{erro}</p>}
+      {erro && <p className="seenti-text-error mb-4 text-center font-medium">{erro}</p>}
 
       {/* Conteúdo do termo com responsividade melhorada para mobile */}
-      <div className="overflow-y-auto max-h-[50vh] md:max-h-[70vh] p-3 md:p-4 border bg-gray-50 rounded text-sm md:text-base leading-relaxed">
+      <div className="overflow-y-auto max-h-[60vh] md:max-h-[65vh] p-4 md:p-6 border border-seenti-gray-200 bg-seenti-gray-50 rounded-lg text-sm md:text-base leading-relaxed">
         {termoTexto ? (
-          <div className="whitespace-pre-wrap font-sans text-gray-800 break-words overflow-wrap-anywhere">
-            {termoTexto}
+          <div className="prose prose-sm md:prose max-w-none">
+            <div className="space-y-4 text-seenti-gray-700">
+              {/* Estrutura o texto em seções para melhor legibilidade */}
+              {termoTexto.split('\n\n').map((paragrafo, index) => (
+                <p key={index} className="text-justify leading-relaxed">
+                  {paragrafo.trim()}
+                </p>
+              ))}
+            </div>
           </div>
         ) : (
-          <div className="text-center text-gray-500 py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
+          <div className="text-center seenti-text-secondary py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-seenti-primary mx-auto mb-2"></div>
             Carregando termo...
           </div>
         )}
       </div>
 
       {/* Botão responsivo e melhorado para mobile */}
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 md:mt-8 flex justify-center">
         <button
           onClick={aceitarTermo}
           disabled={aceitando || !termoTexto}
-          className="w-full md:w-auto px-4 md:px-6 py-3 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 text-base md:text-sm font-medium shadow-sm hover:shadow-md"
+          className="seenti-btn-primary w-full md:w-auto px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-medium rounded-lg hover:seenti-hover-bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
         >
           {aceitando ? (
             <span className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
               Processando...
             </span>
           ) : (

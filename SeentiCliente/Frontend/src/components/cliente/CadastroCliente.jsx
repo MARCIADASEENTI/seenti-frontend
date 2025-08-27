@@ -191,34 +191,35 @@ export default function CadastroCliente() {
   return (
     <div className="max-w-xl mx-auto mt-12 p-6 border rounded-lg shadow bg-white">
       
-      {/* Botão Voltar */}
+      {/* Botão Voltar - PADRONIZADO */}
       <button
         type="button"
         onClick={() => navigate(-1)}
-        className="mb-4 px-3 py-1 text-sm text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+        className="seenti-btn-secondary px-4 py-2 rounded-lg hover:seenti-hover-bg-secondary-dark transition-all duration-200 flex items-center space-x-2 mb-4"
       >
-        ← Voltar
+        <span>←</span>
+        <span>Voltar</span>
       </button>
 
-      <h2 className="text-2xl font-bold mb-4 text-center text-green-700">
+      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center seenti-text-primary">
         Cadastro do Cliente
       </h2>
 
-      {erro && <p className="text-red-600 mb-4">{erro}</p>}
-      {sucesso && <p className="text-green-600 mb-4">{sucesso}</p>}
+      {erro && <p className="seenti-text-error mb-4 text-center font-medium">{erro}</p>}
+      {sucesso && <p className="seenti-text-success mb-4 text-center font-medium">{sucesso}</p>}
 
       {/* Formulário continua igual */}
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
         
         {/* Campos pessoais */}
         {/* ... restante dos inputs iguais ao seu código atual ... */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <input
             name="primeiro_nome"
             placeholder="Primeiro nome *"
             value={form.primeiro_nome}
             onChange={handleChange}
-            className="border rounded px-3 py-2"
+            className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
             required
           />
           <input
@@ -226,7 +227,7 @@ export default function CadastroCliente() {
             placeholder="Sobrenome *"
             value={form.sobrenome}
             onChange={handleChange}
-            className="border rounded px-3 py-2"
+            className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
             required
           />
         </div>
@@ -236,7 +237,7 @@ export default function CadastroCliente() {
           placeholder="Nome social (opcional)"
           value={form.nome_social}
           onChange={handleChange}
-          className="border rounded px-3 py-2"
+          className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
         />
         
         <input
@@ -244,7 +245,7 @@ export default function CadastroCliente() {
           placeholder="CPF * (apenas números)"
           value={form.cpf}
           onChange={handleChange}
-          className="border rounded px-3 py-2"
+          className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
           maxLength="14"
           required
         />
@@ -254,7 +255,7 @@ export default function CadastroCliente() {
           type="date"
           value={form.data_nascimento}
           onChange={handleChange}
-          className="border rounded px-3 py-2"
+          className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
           required
         />
         
@@ -263,7 +264,7 @@ export default function CadastroCliente() {
           placeholder="Telefone * (apenas números)"
           value={form.telefone}
           onChange={handleChange}
-          className="border rounded px-3 py-2"
+          className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
           required
         />
         
@@ -271,7 +272,7 @@ export default function CadastroCliente() {
           name="genero"
           value={form.genero}
           onChange={handleChange}
-          className="border rounded px-3 py-2"
+          className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
         >
           <option value="">Gênero (opcional)</option>
           <option value="Feminino">Feminino</option>
@@ -280,16 +281,16 @@ export default function CadastroCliente() {
         </select>
 
         {/* Seção de Endereço */}
-        <div className="border-t pt-4">
-          <h3 className="text-lg font-semibold mb-3 text-gray-700">Endereço</h3>
+        <div className="border-t border-seenti-gray-200 pt-6 mt-6">
+          <h3 className="text-xl font-semibold mb-4 seenti-text-primary">Endereço</h3>
           
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input
               name="rua"
               placeholder="Rua *"
               value={form.rua}
               onChange={handleChange}
-              className="border rounded px-3 py-2"
+              className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
               required
             />
             <input
@@ -297,7 +298,7 @@ export default function CadastroCliente() {
               placeholder="Número *"
               value={form.numero}
               onChange={handleChange}
-              className="border rounded px-3 py-2"
+              className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
               required
             />
           </div>
@@ -307,16 +308,16 @@ export default function CadastroCliente() {
             placeholder="Complemento (opcional)"
             value={form.complemento}
             onChange={handleChange}
-            className="border rounded px-3 py-2 mt-2"
+            className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200 mt-3"
           />
           
-          <div className="grid grid-cols-2 gap-2 mt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
             <input
               name="bairro"
               placeholder="Bairro *"
               value={form.bairro}
               onChange={handleChange}
-              className="border rounded px-3 py-2"
+              className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
               required
             />
             <input
@@ -324,17 +325,17 @@ export default function CadastroCliente() {
               placeholder="Cidade *"
               value={form.cidade}
               onChange={handleChange}
-              className="border rounded px-3 py-2"
+              className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
               required
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-2 mt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
             <select
               name="estado"
               value={form.estado}
               onChange={handleChange}
-              className="border rounded px-3 py-2"
+              className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
               required
             >
               <option value="">Estado *</option>
@@ -371,7 +372,7 @@ export default function CadastroCliente() {
               placeholder="CEP * (00000-000)"
               value={form.cep}
               onChange={handleChange}
-              className="border rounded px-3 py-2"
+              className="seenti-input h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
               maxLength="9"
               required
             />
@@ -381,8 +382,8 @@ export default function CadastroCliente() {
         <button
           type="submit"
           disabled={loading}
-          className={`py-2 rounded text-white transition ${
-            loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+          className={`seenti-btn-primary w-full h-12 text-lg font-medium rounded-lg transition-all duration-200 ${
+            loading ? 'opacity-50 cursor-not-allowed' : 'hover:seenti-hover-bg-primary-dark shadow-lg hover:shadow-xl'
           }`}
         >
           {loading ? 'Cadastrando...' : 'Cadastrar'}

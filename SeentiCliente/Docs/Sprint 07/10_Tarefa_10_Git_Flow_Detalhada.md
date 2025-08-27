@@ -190,3 +190,9 @@ main (produção)
 ---
 
 *Documentação criada em 25/08/2025 - Sprint 07 - Tarefa 10 CONCLUÍDA* ✅
+
+
+
+
+
+

@@ -77,6 +77,12 @@ export default function PerfilClienteLayout({ children }) {
       icon: '⚙️',
       path: '/configuracoes',
       description: 'Preferências da conta'
+    },
+    {
+      label: 'Fale Com Terapeuta',
+      icon: '💬',
+      path: '/fale-com-terapeuta',
+      description: 'Informações e contatos'
     }
   ];
 
@@ -88,22 +94,66 @@ export default function PerfilClienteLayout({ children }) {
       cadastro_email: localStorage.getItem('cadastro_email'),
       cadastro_tipo: localStorage.getItem('cadastro_tipo'),
       login_method: localStorage.getItem('login_method'),
-      google_token: localStorage.getItem('google_token') ? 'EXISTE' : 'NÃO EXISTE'
+      google_token: localStorage.getItem('google_token') ? 'EXISTE' : 'NÃO EXISTE',
+      termos_aceitos: localStorage.getItem('termos_aceitos'),
+      cliente_cadastrado: localStorage.getItem('cliente_cadastrado')
     });
     
-    // Limpar dados específicos da sessão
-    localStorage.removeItem('usuario_id');
-    localStorage.removeItem('cliente_id');
-    localStorage.removeItem('cadastro_email');
-    localStorage.removeItem('cadastro_tipo');
-    localStorage.removeItem('google_token');
-    localStorage.removeItem('google_token_expiry');
-    localStorage.removeItem('login_method');
+    // ✅ LIMPEZA COMPLETA: Todos os dados de autenticação e sessão
+    const keysToRemove = [
+      'usuario_id',
+      'cliente_id', 
+      'cadastro_email',
+      'cadastro_tipo',
+      'google_token',
+      'google_token_expiry',
+      'login_method',
+      'termos_aceitos',
+      'cliente_cadastrado',
+      'auth_token',
+      'refresh_token',
+      'user_session',
+      'cliente_session',
+      'perfil_completo',
+      'anamnese_completa',
+      'agendamentos_ativos'
+    ];
     
-    console.log('🧹 Dados da sessão Google OAuth limpos');
+    // Limpar cada chave do localStorage
+    keysToRemove.forEach(key => {
+      localStorage.removeItem(key);
+      console.log(`🧹 Removido: ${key}`);
+    });
+    
+    // ✅ LIMPEZA EXTRA: Verificar e remover outras chaves relacionadas
+    Object.keys(localStorage).forEach(key => {
+      if (key.includes('usuario') || 
+          key.includes('cliente') || 
+          key.includes('auth') || 
+          key.includes('session') ||
+          key.includes('token') ||
+          key.includes('cadastro') ||
+          key.includes('termo')) {
+        localStorage.removeItem(key);
+        console.log(`🧹 Removido extra: ${key}`);
+      }
+    });
+    
+    console.log('🧹 LIMPEZA COMPLETA realizada!');
+    console.log('💾 localStorage após limpeza:', {
+      totalKeys: Object.keys(localStorage).length,
+      remainingKeys: Object.keys(localStorage)
+    });
+    
     console.log('🔄 Redirecionando para login...');
     
-    navigate('/login');
+    // ✅ REDIRECIONAMENTO SEGURO: Forçar navegação para login
+    navigate('/login', { replace: true });
+    
+    // ✅ FORÇAR RECARREGAMENTO: Garantir que não há dados residuais
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 100);
   };
 
   // ✅ MELHORADO: Toggle do sidebar com melhor funcionalidade
@@ -272,7 +322,7 @@ export default function PerfilClienteLayout({ children }) {
               />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white drop-shadow-sm">{brand?.name || 'Seenti'}</h2>
+              <h2 className="text-lg font-semibold text-white drop-shadow-lg font-bold">{brand?.name || 'Seenti'}</h2>
             </div>
           </div>
         </div>
@@ -460,6 +510,7 @@ export default function PerfilClienteLayout({ children }) {
           </div>
         </main>
       </div>
+      
     </div>
   );
 }

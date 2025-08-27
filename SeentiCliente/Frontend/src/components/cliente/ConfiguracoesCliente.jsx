@@ -180,16 +180,15 @@ const ConfiguracoesCliente = () => {
     }
   };
 
-  // Aplicar cores do WhiteLabel
-  const primaryColor = brand?.primaryColor || '#1E3A8A';
-  const secondaryColor = brand?.secondaryColor || '#AC80DD';
+  // ✅ PADRONIZADO: Usando tema Seenti oficial
+  // Removido hardcoded colors - usando classes CSS do tema
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando configurações...</p>
+          <p className="seenti-text-secondary">Carregando configurações...</p>
         </div>
       </div>
     );
@@ -206,7 +205,7 @@ const ConfiguracoesCliente = () => {
             </div>
             <h1 className="text-3xl font-bold">Configurações</h1>
           </div>
-          <p className="text-lg text-gray-600">Personalize sua experiência no Seenti</p>
+          <p className="text-lg seenti-text-secondary">Personalize sua experiência no Seenti</p>
         </div>
 
         {/* Mensagens de Status */}
@@ -226,7 +225,7 @@ const ConfiguracoesCliente = () => {
         <div className="config-grid grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           
           {/* Card: Notificações */}
-          <div className="config-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="config-card seenti-card overflow-hidden">
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
               <div className="flex items-center space-x-3">
                 <span className="text-white text-2xl">🔔</span>
@@ -239,8 +238,8 @@ const ConfiguracoesCliente = () => {
               {/* Notificações por Email */}
               <div className="config-item flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">📧 Email</h3>
-                  <p className="text-sm text-gray-600">Notificações importantes por email</p>
+                  <h3 className="font-medium seenti-text-primary">📧 Email</h3>
+                  <p className="text-sm seenti-text-secondary">Notificações importantes por email</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -256,8 +255,8 @@ const ConfiguracoesCliente = () => {
               {/* Notificações Push */}
               <div className="config-item flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">📱 Push</h3>
-                  <p className="text-sm text-gray-600">Notificações no navegador</p>
+                  <h3 className="font-medium seenti-text-primary">📱 Push</h3>
+                  <p className="text-sm seenti-text-secondary">Notificações no navegador</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -273,8 +272,8 @@ const ConfiguracoesCliente = () => {
               {/* Lembretes de Agendamento */}
               <div className="config-item flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">📅 Agendamentos</h3>
-                  <p className="text-sm text-gray-600">Lembretes antes das consultas</p>
+                  <h3 className="font-medium seenti-text-primary">📅 Agendamentos</h3>
+                  <p className="text-sm seenti-text-secondary">Lembretes antes das consultas</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -290,8 +289,8 @@ const ConfiguracoesCliente = () => {
               {/* Lembretes Gerais */}
               <div className="config-item flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">⏰ Lembretes</h3>
-                  <p className="text-sm text-gray-600">Lembretes de atividades</p>
+                  <h3 className="font-medium seenti-text-primary">⏰ Lembretes</h3>
+                  <p className="text-sm seenti-text-secondary">Lembretes de atividades</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -307,8 +306,8 @@ const ConfiguracoesCliente = () => {
               {/* Promoções */}
               <div className="config-item flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">🎁 Promoções</h3>
-                  <p className="text-sm text-gray-600">Ofertas especiais e promoções</p>
+                  <h3 className="font-medium seenti-text-primary">🎁 Promoções</h3>
+                  <p className="text-sm seenti-text-secondary">Ofertas especiais e promoções</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -324,7 +323,7 @@ const ConfiguracoesCliente = () => {
           </div>
 
           {/* Card: Privacidade */}
-          <div className="config-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="config-card seenti-card overflow-hidden">
             <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4">
               <div className="flex items-center space-x-3">
                 <span className="text-white text-2xl">🔒</span>
@@ -337,8 +336,8 @@ const ConfiguracoesCliente = () => {
               {/* Perfil Público */}
               <div className="config-item flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">👤 Perfil Público</h3>
-                  <p className="text-sm text-gray-600">Outros usuários podem ver seu perfil</p>
+                  <h3 className="font-medium seenti-text-primary">👤 Perfil Público</h3>
+                  <p className="text-sm seenti-text-secondary">Outros usuários podem ver seu perfil</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -354,8 +353,8 @@ const ConfiguracoesCliente = () => {
               {/* Compartilhar Dados */}
               <div className="config-item flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">📊 Compartilhar Dados</h3>
-                  <p className="text-sm text-gray-600">Dados para pesquisa científica</p>
+                  <h3 className="font-medium seenti-text-primary">📊 Compartilhar Dados</h3>
+                  <p className="text-sm seenti-text-secondary">Dados para pesquisa científica</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -371,8 +370,8 @@ const ConfiguracoesCliente = () => {
               {/* Receber Contatos */}
               <div className="config-item flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">💬 Receber Contatos</h3>
-                  <p className="text-sm text-gray-600">Profissionais podem entrar em contato</p>
+                  <h3 className="font-medium seenti-text-primary">💬 Receber Contatos</h3>
+                  <p className="text-sm seenti-text-secondary">Profissionais podem entrar em contato</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -389,7 +388,7 @@ const ConfiguracoesCliente = () => {
         </div>
 
         {/* Card: Preferências (Largura Total) */}
-        <div className="config-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div className="config-card seenti-card overflow-hidden mb-8">
           <div className="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4">
             <div className="flex items-center space-x-3">
               <span className="text-white text-2xl">🎨</span>
@@ -457,7 +456,7 @@ const ConfiguracoesCliente = () => {
           {/* Botão Voltar */}
           <button
             onClick={() => navigate('/perfil')}
-            className="btn-secondary"
+            className="seenti-btn-secondary"
           >
             ← Voltar ao Perfil
           </button>
@@ -466,8 +465,7 @@ const ConfiguracoesCliente = () => {
           <button
             onClick={salvarConfiguracoes}
             disabled={saving}
-            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: primaryColor }}
+            className="seenti-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? (
               <>

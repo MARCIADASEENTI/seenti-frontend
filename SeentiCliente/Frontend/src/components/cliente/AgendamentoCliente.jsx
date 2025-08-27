@@ -273,15 +273,15 @@ const AgendamentoCliente = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'confirmado':
-        return 'bg-green-100 text-green-800 border border-green-200';
+        return 'status-confirmado px-2 py-1 rounded-full text-xs font-medium';
       case 'pendente':
-        return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+        return 'status-pendente px-2 py-1 rounded-full text-xs font-medium';
       case 'cancelado':
-        return 'bg-gray-100 text-gray-800 border border-gray-200';
+        return 'status-cancelado px-2 py-1 rounded-full text-xs font-medium';
       case 'rejeitado':
-        return 'bg-red-100 text-red-800 border border-red-200';
+        return 'status-rejeitado px-2 py-1 rounded-full text-xs font-medium';
       default:
-        return 'bg-gray-100 text-gray-800 border border-gray-200';
+        return 'status-cancelado px-2 py-1 rounded-full text-xs font-medium';
     }
   };
 
@@ -304,6 +304,17 @@ const AgendamentoCliente = () => {
         
         {/* ✅ MELHORADO: Header principal */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg p-6 mb-6">
+          {/* ✅ NOVO: Botão Voltar ao Perfil */}
+          <div className="mb-4">
+            <button
+              onClick={() => navigate('/perfil')}
+              className="seenti-btn-secondary text-white px-4 py-2 rounded-lg hover:seenti-hover-bg-secondary-dark transition-all duration-200 flex items-center space-x-2"
+            >
+              <span>←</span>
+              <span>Voltar ao Perfil</span>
+            </button>
+          </div>
+          
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="mb-4 md:mb-0">
               <h1 className="text-2xl font-bold text-white mb-2">
@@ -318,13 +329,13 @@ const AgendamentoCliente = () => {
             {podeSolicitarNovoAgendamento() ? (
               <button
                 onClick={() => setShowForm(!showForm)}
-                className="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-md"
+                className="seenti-btn-primary px-6 py-3 font-medium"
               >
                 {showForm ? 'Fechar Formulário' : '+ Novo Agendamento'}
               </button>
             ) : (
               <div className="text-center">
-                <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg border border-yellow-200">
+                <div className="seenti-bg-warning seenti-text-warning px-4 py-2 rounded-lg border border-yellow-200">
                   <p className="text-sm font-medium">⚠️ Limite de Agendamentos</p>
                   <p className="text-xs">Aguarde confirmação dos pendentes</p>
                 </div>
@@ -406,7 +417,7 @@ const AgendamentoCliente = () => {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 seenti-btn-primary px-6 py-3 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Salvando...' : 'Solicitar Agendamento'}
                 </button>
@@ -425,11 +436,11 @@ const AgendamentoCliente = () => {
 
         {/* ✅ MELHORADO: Mensagens de feedback */}
         {erro && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="seenti-card seenti-bg-error text-white px-4 py-3 mb-4">
             <span className="block sm:inline">{erro}</span>
             <button
               onClick={() => setErro('')}
-              className="float-right text-red-700 hover:text-red-900"
+              className="float-right text-white hover:text-gray-200"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -439,11 +450,11 @@ const AgendamentoCliente = () => {
         )}
         
         {sucesso && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+          <div className="seenti-card seenti-bg-success text-white px-4 py-3 mb-4">
             <span className="block sm:inline">{sucesso}</span>
             <button
               onClick={() => setSucesso('')}
-              className="float-right text-red-700 hover:text-red-900"
+              className="float-right text-white hover:text-gray-200"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -453,41 +464,94 @@ const AgendamentoCliente = () => {
         )}
 
         {/* ✅ NOVO: Mensagem de limite de agendamentos */}
-        <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded mb-4">
+        <div className="seenti-card seenti-bg-info text-white px-4 py-3 mb-4">
           <p className="text-sm font-medium">{getMensagemLimiteAgendamentos()}</p>
         </div>
 
-        {/* ✅ RESTAURADO: Lista de agendamentos (PLANILHA) */}
+        {/* ✅ RESPONSIVO: Lista de agendamentos adaptativa */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Header da lista */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
-            <h3 className="text-lg font-semibold text-white">📋 Últimos Agendamentos</h3>
-            <p className="text-blue-100 text-sm">
+          <div className="seenti-bg-primary px-3 sm:px-6 py-3 sm:py-4">
+            <h3 className="text-base sm:text-lg font-semibold text-white">📋 Últimos Agendamentos</h3>
+            <p className="agendamento-header-text text-xs sm:text-sm opacity-90">
               Mostrando os 2 agendamentos mais recentes de {agendamentos.length} total
             </p>
           </div>
 
-          {/* Lista responsiva */}
-          <div className="overflow-x-auto">
+          {/* Versão Mobile: Cards responsivos */}
+          <div className="agendamento-cards-mobile block sm:hidden">
+            {agendamentosOrdenados && agendamentosOrdenados.length > 0 ? (
+              agendamentosOrdenados.map((agendamento) => (
+                <div key={agendamento._id} className="p-3 border-b border-gray-200 last:border-b-0">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 text-sm">
+                          🗓️ {formatarData(agendamento.data_solicitada)} às {agendamento.hora_solicitada}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          📅 Criado em: {agendamento.criado_em ? formatarData(agendamento.criado_em) : 'N/A'}
+                        </div>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(agendamento.status)}`}>
+                        {agendamento.status}
+                      </span>
+                    </div>
+                    
+                    <div className="text-xs text-gray-700">
+                      📝 {agendamento.observacoes || 'Nenhuma observação'}
+                    </div>
+                    
+                    <div className="flex space-x-2 pt-2">
+                      <button
+                        onClick={() => {
+                          setEditingId(agendamento._id);
+                          setEditObservacoes(agendamento.observacoes || '');
+                        }}
+                        className="seenti-btn-secondary text-xs px-2 py-1"
+                      >
+                        ✏️ Editar
+                      </button>
+                      {agendamento.status === 'pendente' && (
+                        <button
+                          onClick={() => handleCancelar(agendamento._id)}
+                          className="seenti-btn-accent text-xs px-2 py-1"
+                        >
+                          ❌ Cancelar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-6 text-center text-gray-500">
+                Nenhum agendamento encontrado
+              </div>
+            )}
+          </div>
+
+          {/* Versão Desktop: Tabela tradicional */}
+          <div className="agendamento-table-desktop hidden sm:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     🗓️ Data
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     🕒 Horário
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     📄 Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     📝 Observações
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     📅 Criado em
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     ⚙️ Ações
                   </th>
                 </tr>
@@ -496,37 +560,37 @@ const AgendamentoCliente = () => {
                 {agendamentosOrdenados && agendamentosOrdenados.length > 0 ? (
                   agendamentosOrdenados.map((agendamento) => (
                     <tr key={agendamento._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatarData(agendamento.data_solicitada)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {agendamento.hora_solicitada}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(agendamento.status)}`}>
                           {agendamento.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                      <td className="px-3 sm:px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
                         {agendamento.observacoes || 'Nenhuma observação'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {agendamento.criado_em ? formatarData(agendamento.criado_em) : 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
                           onClick={() => {
                             setEditingId(agendamento._id);
                             setEditObservacoes(agendamento.observacoes || '');
                           }}
-                          className="text-blue-600 hover:text-blue-900 mr-3"
+                          className="seenti-btn-secondary mr-3"
                         >
                           ✏️ Editar
                         </button>
                         {agendamento.status === 'pendente' && (
                           <button
                             onClick={() => handleCancelar(agendamento._id)}
-                            className="text-red-600 hover:text-red-900"
+                            className="seenti-btn-accent"
                           >
                             ❌ Cancelar
                           </button>
@@ -536,7 +600,7 @@ const AgendamentoCliente = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                    <td colSpan="6" className="px-3 sm:px-6 py-4 text-center text-gray-500">
                       Nenhum agendamento encontrado
                     </td>
                   </tr>
@@ -563,7 +627,7 @@ const AgendamentoCliente = () => {
               <div className="flex space-x-3">
                 <button
                   onClick={handleSalvarObservacoes}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex-1 seenti-btn-primary px-4 py-2"
                 >
                   💾 Salvar
                 </button>
@@ -573,7 +637,7 @@ const AgendamentoCliente = () => {
                     setEditingId(null);
                     setEditObservacoes('');
                   }}
-                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                  className="flex-1 seenti-btn-secondary px-4 py-2"
                 >
                   ❌ Cancelar
                 </button>

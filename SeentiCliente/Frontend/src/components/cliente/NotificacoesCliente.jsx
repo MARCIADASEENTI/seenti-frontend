@@ -121,28 +121,7 @@ const NotificacoesCliente = () => {
     }
   };
 
-  // Criar notificação de teste
-  const criarNotificacaoTeste = async () => {
-    try {
-      const cliente_id = localStorage.getItem('cliente_id');
-      const response = await api.post('/notificacoes/teste', { 
-        cliente_id,
-        tipo: 'sistema'
-      });
-      
-      if (response.status === 201) {
-        // Adicionar à lista local
-        setNotificacoes(prev => [response.data.data, ...prev]);
-        setTotalNaoLidas(prev => prev + 1);
-        setSucesso('✅ Notificação de teste criada!');
-        setTimeout(() => setSucesso(''), 3000);
-        console.log('✅ Notificação de teste criada:', response.data);
-      }
-    } catch (error) {
-      console.error('❌ Erro ao criar notificação de teste:', error);
-      setErro('Erro ao criar notificação de teste.');
-    }
-  };
+  // ✅ REMOVIDO: Função de criação de notificação de teste (não apropriada para produção)
 
   // ✅ MELHORADO: Formatar data com validação robusta
   const formatarData = (dataString) => {
@@ -211,30 +190,30 @@ const NotificacoesCliente = () => {
   const getCorPorTipo = (tipo) => {
     const cores = {
       agendamento: 'bg-blue-100 text-blue-800',
-      sistema: 'bg-gray-100 text-gray-800',
+      sistema: 'seenti-bg-gray-100 seenti-text-gray-800',
       lembrete: 'bg-yellow-100 text-yellow-800',
       promocao: 'bg-green-100 text-green-800',
       atualizacao: 'bg-purple-100 text-purple-800'
     };
-    return cores[tipo] || 'bg-gray-100 text-gray-800';
+    return cores[tipo] || 'seenti-bg-gray-100 seenti-text-gray-800';
   };
 
-  // Aplicar cores do WhiteLabel
-  const primaryColor = brand?.primaryColor || '#1E3A8A';
+  // ✅ PADRONIZADO: Usando tema Seenti oficial
+  // Removido hardcoded colors - usando classes CSS do tema
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen seenti-bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando notificações...</p>
+          <p className="mt-4 seenti-text-secondary">Carregando notificações...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen seenti-bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -243,17 +222,17 @@ const NotificacoesCliente = () => {
               {/* Botão Voltar */}
               <button
                 onClick={() => navigate('/perfil')}
-                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center space-x-2"
+                className="seenti-btn-secondary flex items-center space-x-2"
               >
                 <span>←</span>
                 <span>Voltar ao Perfil</span>
               </button>
               
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <h1 className="text-3xl font-bold seenti-text-primary mb-2">
                   🔔 Notificações
                 </h1>
-                <p className="text-gray-600">
+                <p className="seenti-text-secondary">
                   {totalNaoLidas > 0 
                     ? `${totalNaoLidas} notificação${totalNaoLidas > 1 ? 'es' : ''} não lida${totalNaoLidas > 1 ? 's' : ''}`
                     : 'Todas as notificações foram lidas'
@@ -266,18 +245,11 @@ const NotificacoesCliente = () => {
               {totalNaoLidas > 0 && (
                 <button
                   onClick={marcarTodasComoLidas}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                  className="px-4 py-2 seenti-btn-secondary focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
                 >
                   ✅ Marcar todas como lidas
                 </button>
               )}
-              
-              <button
-                onClick={criarNotificacaoTeste}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
-              >
-                🧪 Criar teste
-              </button>
             </div>
           </div>
         </div>
@@ -296,14 +268,14 @@ const NotificacoesCliente = () => {
         )}
 
         {/* Lista de Notificações */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="seenti-card">
           {notificacoes.length === 0 ? (
             <div className="p-8 text-center">
               <div className="text-6xl mb-4">🔔</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium seenti-text-primary mb-2">
                 Nenhuma notificação
               </h3>
-              <p className="text-gray-500">
+              <p className="seenti-text-secondary">
                 Você não tem notificações no momento.
               </p>
             </div>
@@ -312,7 +284,7 @@ const NotificacoesCliente = () => {
               {notificacoes.map((notificacao) => (
                 <div 
                   key={notificacao._id} 
-                  className={`p-6 hover:bg-gray-50 transition-colors ${
+                  className={`p-6 hover:seenti-bg-gray-50 transition-colors ${
                     notificacao.status === 'nao_lida' ? 'bg-blue-50' : ''
                   }`}
                 >
@@ -332,15 +304,15 @@ const NotificacoesCliente = () => {
                         )}
                       </div>
                       
-                      <h3 className="text-lg font-medium text-gray-900 mb-1">
+                      <h3 className="text-lg font-medium seenti-text-primary mb-1">
                         {notificacao.titulo}
                       </h3>
                       
-                      <p className="text-gray-600 mb-3">
+                      <p className="seenti-text-secondary mb-3">
                         {notificacao.mensagem}
                       </p>
                       
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <div className="flex items-center space-x-4 text-sm seenti-text-secondary">
                         <span>📅 {formatarData(notificacao.criado_em)}</span>
                         {notificacao.lida_em && (
                           <span>👁️ Lida em {formatarData(notificacao.lida_em)}</span>

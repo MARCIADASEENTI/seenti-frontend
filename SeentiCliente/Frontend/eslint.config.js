@@ -4,7 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-  { ignores: ['dist'] },
+  { ignores: ['dist', 'node_modules', '*.config.js'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
@@ -28,6 +28,10 @@ export default [
         'warn',
         { allowConstantExport: true },
       ],
+      // Regras otimizadas para Sprint 08
+      'no-console': 'warn', // Avisar sobre console.log em produção
+      'prefer-const': 'error', // Forçar uso de const quando possível
+      'no-var': 'error', // Proibir uso de var
     },
   },
 ]
