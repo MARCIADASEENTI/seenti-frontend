@@ -43,9 +43,8 @@ const HistoricoSessoes = () => {
     carregarHistorico();
   }, [navigate]);
 
-  // Aplicar cores do WhiteLabel
-  const primaryColor = brand?.primaryColor || '#1E3A8A';
-  const secondaryColor = brand?.secondaryColor || '#AC80DD';
+  // ✅ PADRONIZADO: Usando tema Seenti oficial
+  // Removido hardcoded colors - usando classes CSS do tema
 
   // Filtrar sessões
   const sessoesFiltradas = sessoes.filter(sessao => {
@@ -121,7 +120,7 @@ const HistoricoSessoes = () => {
     return (
       <div className="max-w-6xl mx-auto mt-8 p-6 text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Carregando histórico...</p>
+        <p className="seenti-text-secondary">Carregando histórico...</p>
       </div>
     );
   }
@@ -135,17 +134,17 @@ const HistoricoSessoes = () => {
             {/* Botão Voltar */}
             <button
               onClick={() => navigate('/perfil')}
-              className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center space-x-2"
+              className="seenti-btn-secondary px-4 py-2 rounded-lg hover:seenti-hover-bg-secondary-dark transition-all duration-200 flex items-center space-x-2"
             >
               <span>←</span>
               <span>Voltar ao Perfil</span>
             </button>
             
             <div className="text-center">
-              <h2 className="text-3xl font-bold mb-2" style={{ color: primaryColor }}>
+              <h2 className="text-3xl font-bold mb-2 seenti-text-primary">
                 📅 Histórico de Sessões
               </h2>
-              <p className="text-gray-600">Acompanhe todas as suas sessões de massoterapia</p>
+              <p className="seenti-text-secondary">Acompanhe todas as suas sessões de massoterapia</p>
             </div>
           </div>
         </div>
@@ -155,7 +154,7 @@ const HistoricoSessoes = () => {
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium seenti-text-primary mb-2">
               Status
             </label>
             <select
@@ -173,7 +172,7 @@ const HistoricoSessoes = () => {
           </div>
           
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium seenti-text-primary mb-2">
               Período
             </label>
             <select
@@ -201,7 +200,7 @@ const HistoricoSessoes = () => {
       {sessoesFiltradas.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">📅</div>
-          <h3 className="text-xl font-medium text-gray-600 mb-2">
+          <h3 className="text-xl font-medium seenti-text-secondary mb-2">
             {erro ? 'Nenhuma sessão encontrada' : 'Nenhuma sessão para os filtros selecionados'}
           </h3>
           <p className="text-gray-500">
@@ -220,10 +219,10 @@ const HistoricoSessoes = () => {
                 <div className="flex-1">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      <h3 className="text-lg font-semibold seenti-text-primary mb-1">
                         {sessao.tipo_massagem || 'Sessão de Massoterapia'}
                       </h3>
-                      <p className="text-gray-600">
+                      <p className="seenti-text-secondary">
                         {sessao.terapeuta?.nome || 'Terapeuta não definido'}
                       </p>
                     </div>
@@ -232,18 +231,18 @@ const HistoricoSessoes = () => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
-                      <span className="font-medium text-gray-700">📅 Data:</span>
-                      <p className="text-gray-600">{formatarData(sessao.data_agendada)}</p>
+                      <span className="font-medium seenti-text-primary">📅 Data:</span>
+                      <p className="seenti-text-secondary">{formatarData(sessao.data_agendada)}</p>
                     </div>
                     <div>
-                      <span className="font-medium text-gray-700">⏱️ Duração:</span>
-                      <p className="text-gray-600">
+                      <span className="font-medium seenti-text-primary">⏱️ Duração:</span>
+                      <p className="seenti-text-secondary">
                         {sessao.duracao ? calcularDuracao(sessao.duracao) : 'Não definida'}
                       </p>
                     </div>
                     <div>
-                      <span className="font-medium text-gray-700">💰 Valor:</span>
-                      <p className="text-gray-600">
+                      <span className="font-medium seenti-text-primary">💰 Valor:</span>
+                      <p className="seenti-text-secondary">
                         {sessao.valor ? `R$ ${sessao.valor.toFixed(2)}` : 'Não definido'}
                       </p>
                     </div>
@@ -283,15 +282,15 @@ const HistoricoSessoes = () => {
               {/* Observações */}
               {sessao.observacoes && (
                 <div className="mt-4 pt-4 border-t border-gray-100">
-                  <span className="font-medium text-gray-700 text-sm">📝 Observações:</span>
-                  <p className="text-gray-600 text-sm mt-1">{sessao.observacoes}</p>
+                  <span className="font-medium seenti-text-primary text-sm">📝 Observações:</span>
+                  <p className="seenti-text-secondary text-sm mt-1">{sessao.observacoes}</p>
                 </div>
               )}
 
               {/* Feedback da sessão */}
               {sessao.feedback && (
                 <div className="mt-4 pt-4 border-t border-gray-100">
-                  <span className="font-medium text-gray-700 text-sm">💬 Seu feedback:</span>
+                  <span className="font-medium seenti-text-primary text-sm">💬 Seu feedback:</span>
                   <div className="flex items-center gap-2 mt-1">
                     <div className="flex text-yellow-400">
                       {[1, 2, 3, 4, 5].map((star) => (
@@ -300,12 +299,12 @@ const HistoricoSessoes = () => {
                         </span>
                       ))}
                     </div>
-                    <span className="text-gray-600 text-sm">
+                    <span className="seenti-text-secondary text-sm">
                       {sessao.feedback.avaliacao}/5
                     </span>
                   </div>
                   {sessao.feedback.comentario && (
-                    <p className="text-gray-600 text-sm mt-1">{sessao.feedback.comentario}</p>
+                    <p className="seenti-text-secondary text-sm mt-1">{sessao.feedback.comentario}</p>
                   )}
                 </div>
               )}

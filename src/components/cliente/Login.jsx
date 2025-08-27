@@ -204,26 +204,26 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-12 p-6 border rounded-lg shadow-md bg-white">
-      <h2 className="text-2xl font-bold mb-6 text-center text-green-700">
+    <div className="max-w-md mx-auto mt-8 md:mt-12 p-4 md:p-6 border rounded-xl shadow-lg bg-white">
+      <h2 className="text-2xl md:text-3xl font-bold mb-6 text-center seenti-text-primary">
         Login
       </h2>
 
       {erro && (
         <div className="mb-4">
-          <p className="text-red-600 mb-3">{erro}</p>
+          <p className="seenti-text-error mb-3 font-medium">{erro}</p>
           
           {/* Botão inteligente para usuário não encontrado */}
           {erro.includes("Usuário não encontrado") && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-blue-800 text-sm mb-3">
+            <div className="seenti-bg-accent border border-seenti-accent/20 rounded-lg p-4">
+              <p className="seenti-text-accent text-sm mb-3 font-medium">
                 💡 Este email não está cadastrado em nossa base.
               </p>
               <button
                 onClick={() => navigate("/cadastro-usuario", { 
                   state: { email: email } // Passa o email para facilitar o cadastro
                 })}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition text-sm font-medium"
+                className="w-full seenti-btn-secondary py-3 px-4 rounded-lg hover:seenti-hover-bg-secondary-dark transition-all duration-200 text-sm font-medium"
               >
                 🚀 Criar conta com este email
               </button>
@@ -238,7 +238,7 @@ export default function Login() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="E-mail"
-          className="border rounded px-3 py-2"
+          className="seenti-input w-full h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
           required
         />
 
@@ -247,14 +247,14 @@ export default function Login() {
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
           placeholder="Senha"
-          className="border rounded px-3 py-2"
+          className="seenti-input w-full h-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-seenti-primary focus:border-transparent transition-all duration-200"
           required
         />
 
         <button
           type="submit"
           disabled={loading}
-          className="bg-green-600 text-white py-2 rounded hover:bg-green-700 transition disabled:opacity-50"
+          className="seenti-btn-primary w-full h-12 text-lg font-medium rounded-lg hover:seenti-hover-bg-primary-dark transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Entrando..." : "Entrar"}
         </button>
@@ -262,9 +262,9 @@ export default function Login() {
 
       {/* Separador */}
       <div className="my-6 flex items-center">
-        <div className="flex-1 border-t border-gray-300"></div>
-        <span className="px-4 text-gray-500 text-sm">ou</span>
-        <div className="flex-1 border-t border-gray-300"></div>
+        <div className="flex-1 border-t border-seenti-gray-300"></div>
+        <span className="px-4 seenti-text-secondary text-sm font-medium">ou</span>
+        <div className="flex-1 border-t border-seenti-gray-300"></div>
       </div>
 
       {/* Botão Google Login */}
@@ -277,10 +277,10 @@ export default function Login() {
           />
         ) : (
           <div className="text-center">
-            <p className="text-red-600 mb-3">Google OAuth indisponível</p>
+            <p className="seenti-text-error mb-3 font-medium">Google OAuth indisponível</p>
             <button
               onClick={() => setGoogleOAuthError(false)}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+              className="seenti-btn-secondary px-6 py-3 rounded-lg hover:seenti-hover-bg-secondary-dark transition-all duration-200 font-medium"
             >
               Tentar Google OAuth Novamente
             </button>
@@ -288,11 +288,11 @@ export default function Login() {
         )}
       </div>
 
-      <p className="text-center mt-4">
+      <p className="text-center mt-6 seenti-text-secondary">
         Não possui conta?{" "}
         <button
           onClick={() => navigate("/cadastro-usuario")}
-          className="text-green-700 underline hover:text-green-900"
+          className="seenti-text-primary underline hover:seenti-hover-text-primary-dark transition-colors duration-200 font-medium"
         >
           Criar conta
         </button>

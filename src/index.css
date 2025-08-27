@@ -1,5 +1,24 @@
+/* 🎨 TEMA OFICIAL DA SEENTI - IMPORTAÇÃO */
+@import './whiteLabel/themes/seentiOficial.css';
+
+/* 🔤 FONTE OFICIAL SEENTI - INTER */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* 🎨 APLICAÇÃO GLOBAL DO TEMA SEENTI */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* 🎨 CORES PRINCIPAIS DA LOGO SEENTI - APLICAÇÃO GLOBAL */
+  --seenti-primary: #1E3A8A !important;      /* Azul principal da logo */
+  --seenti-secondary: #AC80DD !important;     /* Lilás/Roxo da logo */
+  --seenti-accent: #FF6600 !important;        /* Laranja de destaque */
+  
+  /* 🌈 CORES DE ESTADO */
+  --seenti-success: #10B981 !important;       /* Verde */
+  --seenti-warning: #F59E0B !important;       /* Amarelo */
+  --seenti-error: #EF4444 !important;         /* Vermelho */
+  --seenti-info: #3B82F6 !important;          /* Azul info */
+  
+  /* 🔤 TIPOGRAFIA OFICIAL GLOBAL */
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color-scheme: light dark;
@@ -9,21 +28,55 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 🎨 APLICAÇÃO GLOBAL DO TEMA EM TODOS OS ELEMENTOS */
 * {
   box-sizing: border-box;
 }
 
+/* 🎨 APLICAÇÃO GLOBAL DAS CORES SEENTI */
 body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
   font-family: inherit;
+  /* 🎨 CORES DE FUNDO OFICIAIS */
+  background-color: var(--seenti-bg-primary, #FFFFFF);
+  color: var(--seenti-gray-900, #111827);
 }
 
 #root {
   min-height: 100vh;
   width: 100%;
 }
+
+/* 🎨 APLICAÇÃO GLOBAL DOS COMPONENTES SEENTI */
+button, .btn {
+  font-family: var(--seenti-font-primary, 'Inter, sans-serif');
+}
+
+input, textarea, select {
+  font-family: var(--seenti-font-primary, 'Inter, sans-serif');
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--seenti-font-primary, 'Inter, sans-serif');
+  color: var(--seenti-primary, #1E3A8A);
+}
+
+p, span, div {
+  font-family: var(--seenti-font-primary, 'Inter, sans-serif');
+}
+
+/* 🎨 APLICAÇÃO GLOBAL DAS CORES DE ESTADO */
+.text-success { color: var(--seenti-success) !important; }
+.text-warning { color: var(--seenti-warning) !important; }
+.text-error { color: var(--seenti-error) !important; }
+.text-info { color: var(--seenti-info) !important; }
+
+.bg-success { background-color: var(--seenti-success) !important; }
+.bg-warning { background-color: var(--seenti-warning) !important; }
+.bg-error { background-color: var(--seenti-error) !important; }
+.bg-info { background-color: var(--seenti-info) !important; }
 
 /* ===== SISTEMA DE TEMAS - APENAS PARA CONTEÚDO ESPECÍFICO ===== */
 /* NOTA: Não afeta o WhiteLabel - apenas o conteúdo da área de configurações */

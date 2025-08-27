@@ -1,0 +1,436 @@
+/* src/whiteLabel/themes/seentiOficial.css */
+/* Variáveis CSS oficiais da marca Seenti baseadas na logo */
+
+:root {
+  /* 🎨 CORES PRINCIPAIS DA LOGO SEENTI */
+  --seenti-primary: #1E3A8A;      /* Azul principal da logo */
+  --seenti-secondary: #AC80DD;     /* Lilás/Roxo da logo */
+  --seenti-accent: #FF6600;        /* Laranja de destaque */
+  
+  /* 🌈 CORES DE ESTADO */
+  --seenti-success: #10B981;       /* Verde */
+  --seenti-warning: #F59E0B;       /* Amarelo */
+  --seenti-error: #EF4444;         /* Vermelho */
+  --seenti-info: #3B82F6;          /* Azul info */
+  
+  /* ⚪ CORES NEUTRAS */
+  --seenti-white: #FFFFFF;
+  --seenti-gray-50: #F9FAFB;
+  --seenti-gray-100: #F3F4F6;
+  --seenti-gray-200: #E5E7EB;
+  --seenti-gray-300: #D1D5DB;
+  --seenti-gray-400: #9CA3AF;
+  --seenti-gray-500: #6B7280;
+  --seenti-gray-600: #4B5563;
+  --seenti-gray-700: #374151;
+  --seenti-gray-800: #1F2937;
+  --seenti-gray-900: #111827;
+  
+  /* 🎨 CORES DE FUNDO */
+  --seenti-bg-primary: #FFFFFF;
+  --seenti-bg-secondary: #F9FAFB;
+  --seenti-bg-accent: #FEF3C7;
+  
+  /* 🔤 TIPOGRAFIA OFICIAL */
+  --seenti-font-primary: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  --seenti-font-secondary: 'Georgia, serif';
+  --seenti-font-mono: 'JetBrains Mono, Consolas, Monaco, monospace';
+  
+  /* 📱 BREAKPOINTS RESPONSIVOS */
+  --seenti-breakpoint-xs: 480px;
+  --seenti-breakpoint-sm: 640px;
+  --seenti-breakpoint-md: 768px;
+  --seenti-breakpoint-lg: 1024px;
+  --seenti-breakpoint-xl: 1280px;
+  --seenti-breakpoint-2xl: 1536px;
+  
+  /* 🌟 ANIMAÇÕES OFICIAIS */
+  --seenti-transition-fast: 150ms;
+  --seenti-transition-normal: 300ms;
+  --seenti-transition-slow: 500ms;
+  
+  --seenti-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  --seenti-easing-in: cubic-bezier(0.4, 0, 1, 1);
+  --seenti-easing-out: cubic-bezier(0, 0, 0.2, 1);
+  --seenti-easing-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* 🎭 COMPONENTES OFICIAIS */
+  --seenti-border-radius: 0.5rem;
+  --seenti-border-radius-lg: 1rem;
+  --seenti-border-radius-xl: 1.5rem;
+  
+  --seenti-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --seenti-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --seenti-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --seenti-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* 🎨 CLASSES UTILITÁRIAS PARA CORES DE FUNDO */
+.seenti-bg-primary { background-color: var(--seenti-primary); }
+.seenti-bg-secondary { background-color: var(--seenti-secondary); }
+.seenti-bg-accent { background-color: var(--seenti-accent); }
+.seenti-bg-success { background-color: var(--seenti-success); }
+.seenti-bg-warning { background-color: var(--seenti-warning); }
+.seenti-bg-error { background-color: var(--seenti-error); }
+.seenti-bg-info { background-color: var(--seenti-info); }
+
+/* 🌈 GRADIENTE OFICIAL SEENTI - MELHORADO */
+.seenti-bg-gradient {
+  background: linear-gradient(135deg, var(--seenti-primary) 0%, var(--seenti-secondary) 25%, var(--seenti-accent) 50%, var(--seenti-secondary) 75%, var(--seenti-primary) 100%);
+  background-size: 400% 400%;
+  animation: seenti-gradient-shift 8s ease infinite;
+}
+
+/* 🌊 ANIMAÇÃO DO GRADIENTE */
+@keyframes seenti-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 🌈 GRADIENTE ALTERNATIVO PARA SPLASH */
+.seenti-bg-gradient-splash {
+  background: radial-gradient(ellipse at center, var(--seenti-secondary) 0%, var(--seenti-primary) 50%, var(--seenti-accent) 100%);
+  background-size: 200% 200%;
+  animation: seenti-radial-shift 6s ease-in-out infinite;
+}
+
+@keyframes seenti-radial-shift {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+/* 🌈 CLASSES UTILITÁRIAS PARA CORES DE TEXTO */
+.seenti-text-primary { color: var(--seenti-primary); }
+.seenti-text-secondary { color: var(--seenti-secondary); }
+.seenti-text-accent { color: var(--seenti-accent); }
+.seenti-text-success { color: var(--seenti-success); }
+.seenti-text-warning { color: var(--seenti-warning); }
+.seenti-text-error { color: var(--seenti-error); }
+.seenti-text-info { color: var(--seenti-info); }
+
+/* 🎭 CLASSES UTILITÁRIAS PARA BORDAS */
+.seenti-border-primary { border-color: var(--seenti-primary); }
+.seenti-border-secondary { border-color: var(--seenti-secondary); }
+.seenti-border-accent { border-color: var(--seenti-accent); }
+.seenti-border-success { border-color: var(--seenti-success); }
+.seenti-border-warning { border-color: var(--seenti-warning); }
+.seenti-border-error { border-color: var(--seenti-error); }
+.seenti-border-info { border-color: var(--seenti-info); }
+
+/* 🔘 CLASSES UTILITÁRIAS PARA BOTÕES */
+.seenti-btn-primary {
+  background-color: var(--seenti-primary);
+  color: var(--seenti-white);
+  border-radius: var(--seenti-border-radius);
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all var(--seenti-transition-normal) var(--seenti-easing);
+  box-shadow: var(--seenti-shadow);
+}
+
+.seenti-btn-primary:hover {
+  background-color: #1e40af; /* Azul mais escuro */
+  transform: translateY(-1px);
+  box-shadow: var(--seenti-shadow-lg);
+}
+
+.seenti-btn-secondary {
+  background-color: var(--seenti-secondary);
+  color: var(--seenti-white);
+  border-radius: var(--seenti-border-radius);
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all var(--seenti-transition-normal) var(--seenti-easing);
+  box-shadow: var(--seenti-shadow);
+}
+
+.seenti-btn-secondary:hover {
+  background-color: #9333ea; /* Roxo mais escuro */
+  transform: translateY(-1px);
+  box-shadow: var(--seenti-shadow-lg);
+}
+
+.seenti-btn-accent {
+  background-color: var(--seenti-accent);
+  color: var(--seenti-white);
+  border-radius: var(--seenti-border-radius);
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all var(--seenti-transition-normal) var(--seenti-easing);
+  box-shadow: var(--seenti-shadow);
+}
+
+.seenti-btn-accent:hover {
+  background-color: #dc2626; /* Laranja mais escuro */
+  transform: translateY(-1px);
+  box-shadow: var(--seenti-shadow-lg);
+}
+
+/* 🎨 CLASSES UTILITÁRIAS PARA CARDS */
+.seenti-card {
+  background-color: var(--seenti-bg-primary);
+  border-radius: var(--seenti-border-radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--seenti-shadow-lg);
+  border: 1px solid var(--seenti-gray-200);
+  transition: all var(--seenti-transition-normal) var(--seenti-easing);
+}
+
+.seenti-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--seenti-shadow-xl);
+}
+
+/* 🔤 CLASSES UTILITÁRIAS PARA TIPOGRAFIA */
+.seenti-font-primary { font-family: var(--seenti-font-primary); }
+.seenti-font-secondary { font-family: var(--seenti-font-secondary); }
+.seenti-font-mono { font-family: var(--seenti-font-mono); }
+
+/* 📱 RESPONSIVIDADE OFICIAL */
+@media (max-width: var(--seenti-breakpoint-sm)) {
+  .seenti-responsive-text { font-size: 0.875rem; }
+  .seenti-responsive-padding { padding: 1rem; }
+}
+
+@media (max-width: var(--seenti-breakpoint-md)) {
+  .seenti-responsive-text { font-size: 1rem; }
+  .seenti-responsive-padding { padding: 1.5rem; }
+}
+
+@media (min-width: var(--seenti-breakpoint-lg)) {
+  .seenti-responsive-text { font-size: 1.125rem; }
+  .seenti-responsive-padding { padding: 2rem; }
+}
+
+/* 🌟 ANIMAÇÕES OFICIAIS */
+.seenti-fade-in {
+  animation: seentiFadeIn var(--seenti-transition-normal) var(--seenti-easing);
+}
+
+.seenti-slide-up {
+  animation: seentiSlideUp var(--seenti-transition-normal) var(--seenti-easing);
+}
+
+@keyframes seentiFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes seentiSlideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* 🎯 FOCUS STATES OFICIAIS */
+.seenti-focus-ring:focus {
+  outline: 2px solid var(--seenti-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+}
+
+/* 🔍 DEBUG - Apenas em desenvolvimento */
+.seenti-debug {
+  border: 2px dashed var(--seenti-accent);
+  background-color: rgba(255, 102, 0, 0.1);
+}
+
+/* 🎨 CORREÇÃO ESPECÍFICA PARA HEADER DE AGENDAMENTOS */
+.agendamento-header-text {
+  color: white !important;
+  font-weight: 500;
+}
+
+/* 🎨 STATUS DOS AGENDAMENTOS COM TEMA SEENTI */
+.status-confirmado {
+  background-color: var(--seenti-success) !important;
+  color: white !important;
+  border: 1px solid var(--seenti-success) !important;
+}
+
+.status-pendente {
+  background-color: var(--seenti-warning) !important;
+  color: var(--seenti-gray-900) !important;
+  border: 1px solid var(--seenti-warning) !important;
+}
+
+.status-cancelado {
+  background-color: var(--seenti-gray-300) !important;
+  color: var(--seenti-gray-700) !important;
+  border: 1px solid var(--seenti-gray-400) !important;
+}
+
+.status-rejeitado {
+  background-color: var(--seenti-error) !important;
+  color: white !important;
+  border: 1px solid var(--seenti-error) !important;
+}
+
+/* 📱 RESPONSIVIDADE FORÇADA PARA AGENDAMENTOS */
+@media (max-width: 640px) {
+  .agendamento-table-desktop {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .agendamento-cards-mobile {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+}
+
+/* 🏷️ RODAPÉ FIXO SEENTI */
+.seenti-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, var(--seenti-primary) 0%, var(--seenti-secondary) 100%);
+  color: white;
+  padding: 1rem;
+  z-index: 1000;
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
+  border-top: 2px solid var(--seenti-accent);
+}
+
+.seenti-footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.seenti-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.seenti-footer-logo {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.seenti-footer-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.seenti-footer-powered {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+.seenti-footer-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--seenti-accent);
+}
+
+.seenti-footer-info {
+  text-align: right;
+  line-height: 1.4;
+}
+
+.seenti-footer-version {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.seenti-footer-copyright {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+/* 📱 RESPONSIVIDADE DO RODAPÉ */
+@media (max-width: 768px) {
+  .seenti-footer {
+    padding: 0.75rem;
+  }
+  
+  .seenti-footer-content {
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+  }
+  
+  .seenti-footer-info {
+    text-align: center;
+  }
+  
+  .seenti-footer-logo {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  
+  .seenti-footer-powered {
+    font-size: 0.7rem;
+  }
+  
+  .seenti-footer-name {
+    font-size: 0.9rem;
+  }
+  
+  .seenti-footer-version,
+  .seenti-footer-copyright {
+    font-size: 0.7rem;
+  }
+}
+
+/* 🔧 AJUSTE PARA CONTEÚDO PRINCIPAL */
+.perfil-content {
+  margin-bottom: 6rem !important;
+}
+
+.agendamento-content {
+  margin-bottom: 6rem !important;
+}
+
+/* 🌟 CLASSES ADICIONAIS PARA SPLASHSCREEN */
+.seenti-rounded-full { border-radius: 9999px; }
+.seenti-shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+.seenti-drop-shadow-lg { filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04)) drop-shadow(0 4px 3px rgb(0 0 0 / 0.1)); }
+
+/* 🏷️ ESTILOS ADICIONAIS DO FOOTER */
+.seenti-footer-version-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.seenti-footer-changelog-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.seenti-footer-changelog-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
