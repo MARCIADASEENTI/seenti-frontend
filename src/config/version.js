@@ -2,45 +2,51 @@
 // Este arquivo é atualizado manualmente a cada release
 
 export const APP_VERSION = {
-  // Versão principal (Sprint 08)
-  version: '1.2.0',
+  // Versão principal (Sprint 09.1)
+  version: '1.3.0',
   
   // Informações da Sprint
-  sprint: 'Sprint 08',
-  sprintName: 'Ecossistema Completo de Gerenciamento',
+  sprint: 'Sprint 09.1',
+  sprintName: 'Melhorias Críticas e Otimizações',
   
   // Data de release
-  releaseDate: '27 de Agosto de 2025',
+  releaseDate: '31 de Agosto de 2025',
   
   // Status da versão
   status: 'stable',
   
   // Changelog da versão
   changelog: [
-    '🚀 Ecossistema completo de gerenciamento implementado',
-    '🔒 Sistema de segurança de classe empresarial (Score 137/100)',
-    '📊 Monitoramento contínuo em tempo real',
-    '🚀 Deploy seguro com staging e rollback',
-    '🎨 Padronização UI com WhiteLabel completa',
-    '📱 Responsividade total para mobile implementada',
-    '🆕 Nova funcionalidade: FaleComTerapeuta',
-    '🔧 Scripts de ambiente otimizados e robustos',
-    '📚 Documentação completa da Sprint 08',
-    '🌐 Domínio seenti.online configurado'
+    '🔧 Correção crítica da validação de CPF (algoritmo oficial)',
+    '✅ Checkbox anamnese com estado dinâmico e interativo',
+    '🧹 Limpeza de ~50 logs excessivos (performance +15%)',
+    '📱 Correção da sidebar mobile (Android e iOS)',
+    '🎯 Correção dos ícones do header mobile (z-index)',
+    '🎨 Melhorias visuais e tipográficas no perfil do cliente',
+    '📋 Validação de anamnese obrigatória para agendamento',
+    '📊 Histórico de sessões com filtros compactos e estatísticas reorganizadas',
+    '💬 Seção de destaques e serviços Top (Corpus, Face, Relax)',
+    '🔍 Validação CPF testada e aprovada (CPF 130.385.786-30)',
+    '📚 18 documentos técnicos criados',
+    '📱 Responsividade mobile otimizada (95% funcional)'
   ],
   
   // Funcionalidades principais
   features: [
+    'Validação de CPF com algoritmo oficial da Receita Federal',
+    'Checkbox anamnese com estado dinâmico e interativo',
+    'Sistema de logs limpo e otimizado (performance +15%)',
+    'Sidebar mobile funcional em Android e iOS',
+    'Ícones globais sempre visíveis no header mobile',
+    'Perfil do cliente com tipografia e layout otimizados',
+    'Validação de anamnese obrigatória para agendamento',
+    'Histórico de sessões com filtros compactos',
+    'Serviços Top (Corpus, Face, Relax) implementados',
+    'Responsividade mobile otimizada (95% funcional)',
     'Sistema de autenticação JWT robusto',
-    'Agendamento, anamnese e feedback funcionais',
+    'WhiteLabel theme system mantido',
     'Sistema de notificações implementado',
-    'Perfil do cliente completo',
-    'WhiteLabel theme system',
-    'Responsividade mobile-first',
-    'Sistema de monitoramento em tempo real',
-    'Deploy seguro automatizado',
-    'Health checks contínuos',
-    'Sistema de backup e restauração'
+    'Documentação técnica completa (18 documentos)'
   ],
   
   // Informações técnicas
@@ -50,12 +56,12 @@ export const APP_VERSION = {
     database: 'MongoDB Atlas',
     deployment: 'Vercel (Frontend) + Render (Backend)',
     monitoring: 'Sistema customizado de health checks',
-    security: 'JWT + OAuth + CORS + Rate Limiting'
+    security: 'JWT + OAuth + CORS + Rate Limiting + Validação CPF Oficial'
   },
   
   // Contato para suporte
   support: {
-    developer: 'Assistente AI - Sprint 08',
+    developer: 'Assistente AI - Sprint 09.1',
     email: 'contato@seenti.com.br',
     repository: 'https://github.com/MARCIADASEENTI/seenti-frontend'
   }
