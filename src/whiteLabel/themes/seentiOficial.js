@@ -146,10 +146,5 @@ export const seentiOficial = {
   }
 };
 
-// Debug: verificar se o tema oficial está sendo carregado
-console.log('🎨 Tema oficial Seenti carregado:', seentiOficial);
-console.log('🎨 Cores oficiais:', seentiOficial.colors);
-console.log('🔤 Tipografia oficial:', seentiOficial.typography);
-
 
 

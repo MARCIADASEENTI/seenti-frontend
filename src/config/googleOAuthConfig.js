@@ -24,7 +24,7 @@ export const GOOGLE_OAUTH_CONFIG = {
   
   // URLs de redirecionamento
   REDIRECT_URIS: {
-    development: "http://localhost:3000",  // ✅ Atualizado para porta 3000
+    development: "http://localhost:5173",  // ✅ Corrigido para porta 5173
     production: "https://frontend-seenti-app.vercel.app"
   },
   

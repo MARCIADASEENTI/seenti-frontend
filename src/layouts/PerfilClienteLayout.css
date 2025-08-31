@@ -1,5 +1,30 @@
 /* PerfilClienteLayout.css - ✅ REWRITE COMPLETO */
 
+/* ✅ CORREÇÃO GLOBAL: Remover pontinhos pretos de todas as listas */
+.perfil-cliente-layout ul,
+.perfil-cliente-layout li,
+.perfil-cliente-layout .perfil-sidebar ul,
+.perfil-cliente-layout .perfil-sidebar li,
+.perfil-cliente-layout .perfil-sidebar-nav ul,
+.perfil-cliente-layout .perfil-sidebar-nav li,
+
+
+/* ✅ CORREÇÃO ESPECÍFICA: Sidebar e drawer */
+.perfil-sidebar ul,
+.perfil-sidebar li,
+.perfil-sidebar .perfil-sidebar-nav ul,
+.perfil-sidebar .perfil-sidebar-nav li,
+.perfil-mobile-sidebar ul,
+.perfil-mobile-sidebar li {
+  list-style: none !important;
+  list-style-type: none !important;
+  list-style-image: none !important;
+  list-style-position: outside !important;
+  /* ✅ AJUSTADO: Manter espaçamento adequado */
+  margin: 0;
+  padding: 0;
+}
+
 /* ===== LAYOUT PRINCIPAL ===== */
 .perfil-cliente-layout {
   display: flex;
@@ -28,7 +53,9 @@
   justify-content: space-between;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000; /* ✅ AUMENTADO para garantir que fique acima */
+  width: 100%;
+  min-height: 4rem;
 }
 
 /* ===== BOTÃO HAMBURGUER (ÁREA DO CLIENTE) ===== */
@@ -56,22 +83,59 @@
 
 /* ===== SIDEBAR MOBILE (ÁREA DO CLIENTE) ===== */
 .perfil-mobile-sidebar {
-  position: fixed;
-  top: 0;
-  left: -100%;
-  width: 280px;
-  height: 100vh;
-  background: linear-gradient(135deg, #1E3A8A 0%, #AC80DD 100%);
-  z-index: 1000;
-  transition: left 0.3s ease-in-out;
-  overflow-y: auto;
-  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
+  position: fixed !important;
+  top: 0 !important;
+  left: -100% !important;
+  width: 280px !important;
+  height: 100vh !important;
+  background: linear-gradient(135deg, #1E3A8A 0%, #AC80DD 100%) !important;
+  z-index: 1002 !important; /* ✅ AUMENTADO para ficar acima do overlay */
+  transition: left 0.3s ease-in-out !important;
+  overflow-y: auto !important;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  /* ✅ FORÇAR sobrescrever WhiteLabel */
+  transform: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .perfil-mobile-sidebar.open {
-  left: 0;
+  left: 0 !important;
+}
+
+/* ✅ FORÇAR conteúdo da sidebar mobile */
+.perfil-mobile-sidebar .perfil-sidebar-nav {
+  display: flex !important;
+  flex: 1 !important;
+  padding: 1rem !important;
+  color: white !important;
+  background-color: transparent !important;
+}
+
+.perfil-mobile-sidebar .perfil-menu-item {
+  display: flex !important;
+  width: 100% !important;
+  color: white !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.perfil-mobile-sidebar .perfil-menu-icon {
+  color: white !important;
+}
+
+.perfil-mobile-sidebar .perfil-menu-text {
+  color: white !important;
+}
+
+.perfil-mobile-sidebar .perfil-menu-label {
+  color: white !important;
+}
+
+.perfil-mobile-sidebar .perfil-menu-description {
+  color: white !important;
 }
 
 /* ===== OVERLAY MOBILE (ÁREA DO CLIENTE) ===== */
@@ -82,7 +146,7 @@
   width: 100vw;
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  z-index: 1001; /* ✅ AJUSTADO para ficar abaixo da sidebar */
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease-in-out;
@@ -113,25 +177,15 @@
   }
   
   /* ✅ MOBILE: Mostrar header */
-  .perfil-mobile-header {
+  .perfil-cliente-layout .perfil-mobile-header {
     display: flex !important; /* ✅ FORÇAR mostrar no mobile */
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   
   /* ✅ MOBILE: Ajustar padding */
   .perfil-content {
     padding: 0.5rem;
-  }
-  
-  /* ✅ DEBUG: Log para verificar se está funcionando */
-  .perfil-sidebar::after {
-    content: '❌ SIDEBAR DESKTOP - DEVERIA ESTAR ESCONDIDA';
-    color: red;
-    background: yellow;
-    padding: 10px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 9999;
   }
 }
 
@@ -215,6 +269,23 @@
 }
 
 /* ===== ITENS DO MENU ===== */
+/* ✅ CORREÇÃO: Remover pontinhos pretos da lista */
+.perfil-sidebar-nav ul {
+  list-style: none !important;
+  list-style-type: none !important;
+  /* ✅ AJUSTADO: Manter espaçamento adequado */
+  margin: 0;
+  padding: 0;
+}
+
+.perfil-sidebar-nav li {
+  list-style: none !important;
+  list-style-type: none !important;
+  /* ✅ AJUSTADO: Manter espaçamento adequado */
+  margin: 0;
+  padding: 0;
+}
+
 .perfil-menu-item {
   width: 100%;
   display: flex;
@@ -266,6 +337,24 @@
   font-size: 1.25rem;
   flex-shrink: 0;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* ✅ AJUSTADO: Espaçamento adequado entre itens do menu */
+.perfil-sidebar-nav .space-y-2 > li {
+  margin-bottom: 0.5rem !important; /* ✅ Espaçamento entre itens */
+}
+
+.perfil-sidebar-nav .space-y-2 > li:last-child {
+  margin-bottom: 0 !important; /* ✅ Último item sem margem inferior */
+}
+
+/* ✅ AJUSTADO: Espaçamento específico para cada item */
+.perfil-sidebar-nav li {
+  margin-bottom: 0.5rem; /* ✅ Espaçamento padrão entre itens */
+}
+
+.perfil-sidebar-nav li:last-child {
+  margin-bottom: 0; /* ✅ Último item sem margem inferior */
 }
 
 .perfil-menu-text {
@@ -369,3 +458,64 @@
 .perfil-menu-item {
   position: relative;
 }
+
+/* ===== BOTTOM NAVIGATION MOBILE ===== */
+/* ✅ CORREÇÃO: Remover pontinhos pretos do drawer mobile */
+.perfil-sidebar-nav ul,
+.perfil-sidebar-nav li,
+.perfil-sidebar-nav .perfil-menu-item {
+  list-style: none !important;
+  list-style-type: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* ✅ CORREÇÃO: Remover pontinhos pretos do drawer mobile também */
+.perfil-mobile-sidebar ul,
+.perfil-mobile-sidebar li,
+.perfil-mobile-sidebar .perfil-menu-item {
+  list-style: none !important;
+  list-style-type: none !important;
+  /* ✅ AJUSTADO: Manter espaçamento adequado */
+  margin: 0;
+  padding: 0;
+}
+
+/* ✅ AJUSTADO: Espaçamento do drawer mobile */
+.perfil-mobile-sidebar li {
+  margin-bottom: 0.5rem; /* ✅ Espaçamento entre itens */
+}
+
+.perfil-mobile-sidebar li:last-child {
+  margin-bottom: 0; /* ✅ Último item sem margem inferior */
+}
+
+/* ✅ CORREÇÃO ULTRA ESPECÍFICA: Forçar remoção de pontinhos */
+.perfil-cliente-layout * ul,
+.perfil-cliente-layout * li,
+.perfil-sidebar * ul,
+.perfil-sidebar * li,
+.perfil-sidebar-nav * ul,
+.perfil-sidebar-nav * li {
+  list-style: none !important;
+  list-style-type: none !important;
+  list-style-image: none !important;
+  list-style-position: outside !important;
+}
+
+/* ===== RESPONSIVIDADE MOBILE ===== */
+@media (max-width: 768px) {
+  /* Esconder sidebar no mobile */
+  .perfil-sidebar {
+    display: none;
+  }
+  
+  /* Mostrar header mobile */
+  .perfil-mobile-header {
+    display: flex;
+  }
+}
+
+
+
+

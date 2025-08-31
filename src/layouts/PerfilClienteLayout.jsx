@@ -6,6 +6,7 @@ import { useTheme } from '../hooks/useTheme';
 import { getVersionInfo } from '../config/version';
 import './PerfilClienteLayout.css';
 import api from '../services/api';
+import IconesGlobais from '../components/globais/IconesGlobais';
 
 export default function PerfilClienteLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,27 +17,32 @@ export default function PerfilClienteLayout({ children }) {
   // ✅ NOVO: Estado para notificações não lidas
   const [notificacoesNaoLidas, setNotificacoesNaoLidas] = useState(0);
   const [loadingNotificacoes, setLoadingNotificacoes] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // ✅ MELHORADO: Detecção de mobile mais robusta
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      console.log('📱 Detecção mobile:', mobile, 'Largura:', window.innerWidth);
+    };
+
+    // Verificar imediatamente
+    checkMobile();
+
+    // Adicionar listener para mudanças de tamanho
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Debug: verificar se o layout está sendo renderizado
   useEffect(() => {
-    console.log('🔍 PerfilClienteLayout renderizado');
-    console.log('📍 Rota atual:', location.pathname);
-    console.log('🏷️ Marca detectada:', brand);
-    console.log('🖼️ Logo path:', brand?.logo);
-    console.log('🎨 Cor primária:', brand?.primaryColor);
-    console.log('🎨 Cor secundária:', brand?.secondaryColor);
-    
     // Verificar se o usuário está autenticado
     const usuario_id = localStorage.getItem('usuario_id');
     const cliente_id = localStorage.getItem('cliente_id');
     
-    console.log('🔍 PerfilClienteLayout: Dados de autenticação:', {
-      usuario_id,
-      cliente_id
-    });
-    
     if (!usuario_id || !cliente_id) {
-      console.log('❌ PerfilClienteLayout: Usuário não autenticado, redirecionando para login');
       navigate('/login');
       return;
     }
@@ -88,18 +94,6 @@ export default function PerfilClienteLayout({ children }) {
   ];
 
   const handleLogout = () => {
-    console.log('🚪 Iniciando logout...');
-    console.log('💾 localStorage antes da limpeza:', {
-      usuario_id: localStorage.getItem('usuario_id'),
-      cliente_id: localStorage.getItem('cliente_id'),
-      cadastro_email: localStorage.getItem('cadastro_email'),
-      cadastro_tipo: localStorage.getItem('cadastro_tipo'),
-      login_method: localStorage.getItem('login_method'),
-      google_token: localStorage.getItem('google_token') ? 'EXISTE' : 'NÃO EXISTE',
-      termos_aceitos: localStorage.getItem('termos_aceitos'),
-      cliente_cadastrado: localStorage.getItem('cliente_cadastrado')
-    });
-    
     // ✅ LIMPEZA COMPLETA: Todos os dados de autenticação e sessão
     const keysToRemove = [
       'usuario_id',
@@ -123,7 +117,6 @@ export default function PerfilClienteLayout({ children }) {
     // Limpar cada chave do localStorage
     keysToRemove.forEach(key => {
       localStorage.removeItem(key);
-      console.log(`🧹 Removido: ${key}`);
     });
     
     // ✅ LIMPEZA EXTRA: Verificar e remover outras chaves relacionadas
@@ -136,17 +129,8 @@ export default function PerfilClienteLayout({ children }) {
           key.includes('cadastro') ||
           key.includes('termo')) {
         localStorage.removeItem(key);
-        console.log(`🧹 Removido extra: ${key}`);
       }
     });
-    
-    console.log('🧹 LIMPEZA COMPLETA realizada!');
-    console.log('💾 localStorage após limpeza:', {
-      totalKeys: Object.keys(localStorage).length,
-      remainingKeys: Object.keys(localStorage)
-    });
-    
-    console.log('🔄 Redirecionando para login...');
     
     // ✅ REDIRECIONAMENTO SEGURO: Forçar navegação para login
     navigate('/login', { replace: true });
@@ -159,22 +143,19 @@ export default function PerfilClienteLayout({ children }) {
 
   // ✅ MELHORADO: Toggle do sidebar com melhor funcionalidade
   const toggleSidebar = () => {
-    console.log('🍔 Toggle sidebar:', !sidebarOpen);
-    console.log('📱 Tamanho da tela:', window.innerWidth);
-    console.log('📱 É mobile?', window.innerWidth <= 768);
-    setSidebarOpen(!sidebarOpen);
+    const newState = !sidebarOpen;
+    setSidebarOpen(newState);
+    console.log('🎯 Toggle sidebar:', newState, 'Mobile:', isMobile);
   };
 
   // ✅ NOVO: Fechar sidebar ao navegar
   const handleNavigation = (path) => {
-    console.log('🧭 Navegando para:', path);
     setSidebarOpen(false); // ✅ Fechar sidebar ao navegar
     navigate(path);
   };
 
   // ✅ NOVO: Fechar sidebar ao clicar fora
   const handleOverlayClick = () => {
-    console.log('🖱️ Clicou fora do sidebar, fechando...');
     setSidebarOpen(false);
   };
 
@@ -195,7 +176,6 @@ export default function PerfilClienteLayout({ children }) {
       if (response.status === 200 && response.data?.data) {
         const totalNaoLidas = response.data.data.total_nao_lidas || 0;
         setNotificacoesNaoLidas(totalNaoLidas);
-        console.log('🔔 Notificações não lidas carregadas:', totalNaoLidas);
       }
     } catch (error) {
       console.error('❌ Erro ao carregar notificações:', error);
@@ -216,18 +196,14 @@ export default function PerfilClienteLayout({ children }) {
 
   // ✅ NOVO: Debug do estado do sidebar
   useEffect(() => {
-    console.log('📱 Estado do sidebar:', {
-      sidebarOpen,
-      windowWidth: window.innerWidth,
-      isMobile: window.innerWidth <= 768
-    });
-    
     // ✅ NOVO: Debug dos estilos aplicados
     if (window.innerWidth <= 768) {
-      console.log('🎨 Estilos mobile aplicados:', getSidebarStyle());
-      console.log('🎨 Header mobile aplicado:', getHeaderMobileStyle());
+      console.log('🎨 Header mobile deve ser renderizado:', isMobile);
+      console.log('🎨 Estilos do header:', getHeaderMobileStyle());
     }
-  }, [sidebarOpen]);
+  }, [sidebarOpen, isMobile]);
+
+  // ✅ REMOVIDO: useEffect duplicado que causava conflito
 
   // Aplicar cores do WhiteLabel - PADRONIZADO com tela de termo
   const sidebarStyle = {
@@ -241,10 +217,8 @@ export default function PerfilClienteLayout({ children }) {
 
         // ✅ NOVO: Estilos inline para forçar funcionalidade mobile
   const getSidebarStyle = () => {
-    const isMobile = window.innerWidth <= 768;
-    
     if (isMobile) {
-      // ✅ FORÇAR estilos mobile - sobrescrever WhiteLabel
+      // ✅ FORÇAR estilos mobile - drawer sobrepondo conteúdo
       return {
         position: 'fixed',
         top: 0,
@@ -260,23 +234,20 @@ export default function PerfilClienteLayout({ children }) {
         // ✅ FORÇAR sobrescrever qualquer CSS do WhiteLabel
         transform: 'none !important',
         opacity: '1 !important',
-        visibility: 'visible !important'
+        visibility: 'visible !important',
+        display: 'flex !important',
+        flexDirection: 'column !important'
       };
     }
     
-    // ✅ Estilos desktop
-    return {
-      width: '16rem',
-      background: `linear-gradient(135deg, ${brand?.primaryColor || '#1E3A8A'} 0%, ${brand?.secondaryColor || '#AC80DD'} 100%)`,
-      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-      borderRightColor: brand?.secondaryColor || '#AC80DD'
-    };
+    // ✅ Desktop: retornar objeto vazio para usar CSS original
+    return {};
   };
+
+
 
   // ✅ NOVO: Estilos inline para header mobile
   const getHeaderMobileStyle = () => {
-    const isMobile = window.innerWidth <= 768;
-    
     if (isMobile) {
       // ✅ FORÇAR header mobile - sobrescrever WhiteLabel
       return {
@@ -289,11 +260,16 @@ export default function PerfilClienteLayout({ children }) {
         justifyContent: 'space-between !important',
         position: 'sticky !important',
         top: 0,
-        zIndex: 100,
+        zIndex: 1000, // ✅ AUMENTADO para garantir que fique acima de outros elementos
+        width: '100% !important',
+        minHeight: '4rem !important',
         // ✅ FORÇAR sobrescrever qualquer CSS do WhiteLabel
         transform: 'none !important',
         opacity: '1 !important',
-        visibility: 'visible !important'
+        visibility: 'visible !important',
+        // ✅ FORÇAR layout flexbox
+        flexDirection: 'row !important',
+        flexWrap: 'nowrap !important'
       };
     }
     
@@ -330,9 +306,19 @@ export default function PerfilClienteLayout({ children }) {
 
         {/* Menu de navegação */}
         <nav className="perfil-sidebar-nav">
-          <ul className="space-y-2">
+          <ul className="space-y-2" style={{
+            listStyle: 'none',
+            listStyleType: 'none',
+            margin: 0,
+            padding: 0
+          }}>
             {menuItems.map((item) => (
-              <li key={item.path}>
+              <li key={item.path} style={{
+                listStyle: 'none',
+                listStyleType: 'none',
+                margin: 0,
+                padding: 0
+              }}>
                 <button
                   onClick={() => handleNavigation(item.path)}
                   className={`perfil-menu-item ${
@@ -382,59 +368,177 @@ export default function PerfilClienteLayout({ children }) {
         </div>
       </aside>
 
-      {/* Sidebar mobile e overlay */}
-      {sidebarOpen && (
-        <>
-          {/* Overlay para fechar sidebar mobile */}
-          <div 
-            className="perfil-mobile-overlay open"
-            onClick={handleOverlayClick}
-          />
+      {/* Drawer mobile - ISOLADO do WhiteLabel */}
+      {isMobile && (
+        <div id="mobile-sidebar-container" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          zIndex: 9999,
+          pointerEvents: sidebarOpen ? 'auto' : 'none'
+        }}>
+          {/* Overlay para fechar drawer */}
+          {sidebarOpen && (
+            <div 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                zIndex: 9999
+              }}
+              onClick={toggleSidebar}
+            />
+          )}
           
-          {/* Sidebar mobile */}
-          <div className="perfil-mobile-sidebar open" style={sidebarStyle}>
-            {/* Header mobile */}
-            <div className="perfil-sidebar-header">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="perfil-sidebar-logo" style={logoStyle}>
-                    {brand?.name ? brand.name.charAt(0) : 'S'}
-                  </div>
-                  <span className="font-semibold text-white">{brand?.name || 'Seenti'}</span>
-                </div>
-                <button
-                  onClick={toggleSidebar}
-                  className="p-2 text-white hover:text-white opacity-80"
-                  aria-label="Fechar menu"
-                >
-                  <span className="text-xl">❌</span>
-                </button>
+          {/* Drawer lateral - COMPLETAMENTE ISOLADO */}
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: sidebarOpen ? 0 : '-100%',
+            width: '280px',
+            height: '100vh',
+            background: 'linear-gradient(135deg, #1E3A8A 0%, #AC80DD 100%)',
+            zIndex: 10000,
+            transition: 'left 0.3s ease-in-out',
+            overflowY: 'auto',
+            boxShadow: '4px 0 15px rgba(0, 0, 0, 0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            color: 'white',
+            fontFamily: 'Inter, sans-serif'
+          }}>
+            {/* Header do drawer */}
+            <div style={{
+              padding: '1.25rem 1.5rem',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <img 
+                  src={brand?.logo || '/assets/logo-parceirox.png'} 
+                  alt={`Logo ${brand?.name || 'Seenti'}`}
+                  style={{
+                    width: '2rem',
+                    height: '2rem',
+                    borderRadius: '0.5rem',
+                    objectFit: 'contain',
+                    backgroundColor: 'white',
+                    padding: '0.25rem'
+                  }}
+                />
+                <span style={{ 
+                  fontWeight: '600', 
+                  color: 'white',
+                  fontSize: '1.125rem'
+                }}>
+                  {brand?.name || 'Seenti'}
+                </span>
               </div>
+              <button
+                onClick={toggleSidebar}
+                style={{
+                  padding: '0.5rem',
+                  color: 'white',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '1.25rem',
+                  opacity: 0.8
+                }}
+                aria-label="Fechar menu"
+              >
+                ✕
+              </button>
             </div>
 
-            {/* Menu mobile */}
-            <nav className="perfil-sidebar-nav">
-              <ul className="space-y-2">
+            {/* Menu do drawer */}
+            <nav style={{
+              flex: 1,
+              padding: '1rem',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              <ul style={{
+                listStyle: 'none',
+                margin: 0,
+                padding: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem'
+              }}>
                 {menuItems.map((item) => (
-                  <li key={item.path}>
+                  <li key={item.path} style={{ margin: 0, padding: 0 }}>
                     <button
-                      onClick={() => handleNavigation(item.path)}
-                      className={`perfil-menu-item ${
-                        isActivePath(item.path) ? 'active' : ''
-                      }`}
+                      onClick={() => {
+                        handleNavigation(item.path);
+                        toggleSidebar();
+                      }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '0.5rem',
+                        border: 'none',
+                        background: isActivePath(item.path) ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                        cursor: 'pointer',
+                        color: 'white',
+                        textAlign: 'left',
+                        transition: 'all 0.2s',
+                        fontSize: '1rem'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = isActivePath(item.path) ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)';
+                      }}
                     >
-                      <span className="perfil-menu-icon">{item.icon}</span>
-                      <div className="perfil-menu-text">
-                        <div className="perfil-menu-label">{item.label}</div>
-                        <div className="perfil-menu-description">{item.description}</div>
+                      <span style={{ fontSize: '1.25rem' }}>{item.icon}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ 
+                          fontWeight: '500',
+                          color: 'white',
+                          fontSize: '0.875rem'
+                        }}>
+                          {item.label}
+                        </div>
+                        <div style={{ 
+                          color: 'rgba(255, 255, 255, 0.7)',
+                          fontSize: '0.75rem',
+                          marginTop: '0.125rem'
+                        }}>
+                          {item.description}
+                        </div>
                       </div>
                       
-                      {/* ✅ NOVO: Badge de notificações não lidas (mobile) */}
+                      {/* Badge de notificações */}
                       {item.path === '/notificacoes' && notificacoesNaoLidas > 0 && (
-                        <div className="perfil-notificacao-badge">
-                          <span className="perfil-notificacao-count">
-                            {notificacoesNaoLidas > 99 ? '99+' : notificacoesNaoLidas}
-                          </span>
+                        <div style={{
+                          position: 'absolute',
+                          top: '-5px',
+                          right: '-5px',
+                          backgroundColor: '#ef4444',
+                          color: 'white',
+                          borderRadius: '50%',
+                          minWidth: '20px',
+                          height: '20px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                          border: '2px solid #1e293b'
+                        }}>
+                          {notificacoesNaoLidas > 99 ? '99+' : notificacoesNaoLidas}
                         </div>
                       )}
                     </button>
@@ -443,66 +547,119 @@ export default function PerfilClienteLayout({ children }) {
               </ul>
             </nav>
 
-            {/* Footer mobile */}
-            <div className="perfil-sidebar-footer">
+            {/* Footer do drawer */}
+            <div style={{
+              padding: '1rem',
+              borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+            }}>
               <button
                 onClick={handleLogout}
-                className="perfil-logout-button"
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  cursor: 'pointer',
+                  color: 'white',
+                  fontSize: '1rem',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                }}
               >
-                <span className="perfil-menu-icon">🚪</span>
+                <span style={{ fontSize: '1.25rem' }}>🚪</span>
                 <span>Sair</span>
               </button>
               
-              {/* ✅ NOVO: Copyright discreto na sidebar mobile */}
-              <div className="perfil-copyright">
-                <p className="text-xs text-white opacity-90 text-center leading-tight">
+              {/* Copyright */}
+              <div style={{
+                marginTop: '1rem',
+                paddingTop: '1rem',
+                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                textAlign: 'center'
+              }}>
+                <p style={{
+                  margin: 0,
+                  lineHeight: 1.2,
+                  fontSize: '0.7rem',
+                  color: 'rgba(255, 255, 255, 0.9)'
+                }}>
                   © 2025 Seenti® - Todos os direitos reservados.
                 </p>
-                {/* ✅ NOVO: Versão do sistema */}
-                <p className="text-xs text-white opacity-70 text-center leading-tight mt-1">
+                <p style={{
+                  margin: '0.25rem 0 0 0',
+                  lineHeight: 1.2,
+                  fontSize: '0.7rem',
+                  color: 'rgba(255, 255, 255, 0.7)'
+                }}>
                   {getVersionInfo().full}
                 </p>
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* Conteúdo principal */}
       <div className="perfil-main-content">
-        {/* Header mobile com botão de menu - ✅ MOVIDO para área do cliente */}
-        <header className="perfil-mobile-header" style={getHeaderMobileStyle()}>
-          <div className="flex items-center justify-between">
-            {/* ✅ NOVO: Ícone hamburguer na área do cliente */}
-            <button
-              onClick={toggleSidebar}
-              className="perfil-mobile-menu-button"
-              aria-label="Abrir menu"
-            >
-              <span className="text-xl">☰</span>
-            </button>
-            
-            {/* ✅ NOVO: Logo e nome da marca centralizados */}
-            <div className="flex items-center space-x-3">
-              <img 
-                src={brand?.logo || '/logo.png'} 
-                alt={`Logo ${brand?.name || 'Seenti'}`}
-                className="w-6 h-6 rounded-lg object-contain bg-white p-1"
+        {/* Header mobile com botão de menu - APENAS em mobile */}
+        {isMobile && (
+          <header className="perfil-mobile-header" style={getHeaderMobileStyle()}>
+            <div className="flex items-center justify-between">
+              {/* ✅ Ícone hamburguer na área do cliente */}
+              <button
+                onClick={toggleSidebar}
+                className="perfil-mobile-menu-button"
+                aria-label="Abrir menu"
                 style={{
-                  width: '1.5rem',
-                  height: '1.5rem',
-                  maxWidth: '1.5rem',
-                  maxHeight: '1.5rem',
-                  objectFit: 'contain'
+                  padding: '0.5rem',
+                  color: '#1E3A8A',
+                  borderRadius: '0.375rem',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.25rem',
+                  fontWeight: 'bold'
                 }}
-              />
-              <span className="font-semibold text-gray-800">{brand?.name || 'Seenti'}</span>
+              >
+                <span className="text-xl">☰</span>
+              </button>
+              
+              {/* ✅ Logo e nome da marca centralizados */}
+              <div className="flex items-center space-x-3">
+                <img 
+                  src={brand?.logo || '/assets/logo-parceirox.png'} 
+                  alt={`Logo ${brand?.name || 'Seenti'}`}
+                  className="w-6 h-6 rounded-lg object-contain bg-white p-1"
+                  style={{
+                    width: '1.5rem',
+                    height: '1.5rem',
+                    maxWidth: '1.5rem',
+                    maxHeight: '1.5rem',
+                    objectFit: 'contain'
+                  }}
+                />
+                <span className="font-semibold text-gray-800">{brand?.name || 'Seenti'}</span>
+              </div>
+              
+              {/* ✅ REMOVIDO: Ícones globais do header mobile (WhiteLabel) */}
+              {/* ✅ Espaçador para manter layout equilibrado */}
+              <div className="w-10"></div>
             </div>
-            
-            {/* ✅ NOVO: Espaçador para centralizar */}
-            <div className="w-10"></div>
-          </div>
-        </header>
+          </header>
+        )}
 
         {/* Conteúdo da página */}
         <main className="perfil-content">
@@ -511,6 +668,9 @@ export default function PerfilClienteLayout({ children }) {
           </div>
         </main>
       </div>
+
+      {/* 🔄 BOTTOM NAVIGATION REMOVIDO - Mantendo apenas sidebar funcional */}
+      {/* ✅ Funcionalidade será implementada em sprint futura após pesquisa técnica */}
       
     </div>
   );

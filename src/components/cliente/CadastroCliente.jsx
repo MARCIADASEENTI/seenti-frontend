@@ -29,27 +29,36 @@ export default function CadastroCliente() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Validação de CPF
-  const validarCPF = (cpf) => {
-    cpf = cpf.replace(/[^\d]/g, '');
+  // ✅ VALIDAÇÃO CPF CORRIGIDA: Algoritmo oficial do governo
+  const validarCPF = (cpfInput) => {
+    // ✅ Validação de input
+    if (!cpfInput) return false;
+
+    // ✅ Limpeza robusta do input
+    let cpf = cpfInput.replace(/\D/g, '').trim();
+    
+    // ✅ Verifica se tem 11 dígitos
     if (cpf.length !== 11) return false;
-    if (cpf === cpf[0].repeat(11)) return false;
+    
+    // ✅ Verifica se todos os dígitos são iguais (CPF inválido)
+    if (/^(\d)\1{10}$/.test(cpf)) return false;
+    
+    // ✅ Função auxiliar para calcular dígito verificador
+    const calcularDigito = (cpf, fator) => {
+      let soma = 0;
+      for (let i = 0; i < fator - 1; i++) {
+        soma += Number(cpf[i]) * (fator - i);
+      }
+      const resto = soma % 11;
+      return resto < 2 ? 0 : 11 - resto;
+    };
 
-    let soma = 0;
-    for (let i = 0; i < 9; i++) {
-      soma += parseInt(cpf[i]) * (10 - i);
-    }
-    let resto = 11 - (soma % 11);
-    let digito1 = resto < 2 ? 0 : resto;
-
-    soma = 0;
-    for (let i = 0; i < 10; i++) {
-      soma += parseInt(cpf[i]) * (11 - i);
-    }
-    resto = 11 - (soma % 11);
-    let digito2 = resto < 2 ? 0 : resto;
-
-    return cpf[9] === digito1.toString() && cpf[10] === digito2.toString();
+    // ✅ Cálculo dos dígitos verificadores
+    const digito1 = calcularDigito(cpf, 10);
+    const digito2 = calcularDigito(cpf, 11);
+    
+    // ✅ Comparação robusta usando Number() para evitar problemas com zeros à esquerda
+    return Number(cpf[9]) === digito1 && Number(cpf[10]) === digito2;
   };
 
   // Validação de idade (18+)

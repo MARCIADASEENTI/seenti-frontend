@@ -17,57 +17,44 @@ export default function Login() {
   // Função para verificar fluxo do usuário
   const verificarFluxoUsuario = async (usuario_id) => {
     try {
-      console.log('🔍 Iniciando verificação de fluxo para usuário:', usuario_id);
       
       // 1. Verifica se o usuário já aceitou os termos
-      console.log('📋 Verificando se usuário aceitou termos...');
       const termosRes = await api.get(`/termo-assinado/${usuario_id}`);
-      console.log('📋 Resposta da verificação de termos:', termosRes.data);
       
       if (termosRes.data.assinado) {
-        console.log('✅ Usuário já aceitou os termos');
         
         // 2. Se aceitou termos, verifica se tem cliente
         try {
-          console.log('👤 Verificando se usuário tem cliente cadastrado...');
           const clienteRes = await api.get(`/clientes/usuario/${usuario_id}`);
-          console.log('👤 Resposta da verificação de cliente:', clienteRes.data);
           
           if (clienteRes.data._id) {
-            console.log('✅ Usuário tem cliente cadastrado, redirecionando para perfil');
             // 3. Se tem cliente, vai para perfil
             localStorage.setItem("cliente_id", clienteRes.data._id);
             navigate('/perfil');
           } else {
-            console.log('❌ Usuário não tem cliente cadastrado, redirecionando para cadastro');
             // 4. Se não tem cliente, vai para cadastro de cliente
             navigate('/cadastro-cliente');
           }
         } catch (err) {
           console.error('❌ Erro ao verificar cliente:', err);
           if (err.response?.status === 404) {
-            console.log('❌ Cliente não encontrado, redirecionando para cadastro');
             // 5. Cliente não encontrado, vai para cadastro
             navigate('/cadastro-cliente');
           } else {
-            console.log('❌ Erro na busca, redirecionando para perfil (segurança)');
             // 6. Erro na busca, vai para perfil (segurança)
             navigate('/perfil');
           }
         }
       } else {
-        console.log('❌ Usuário não aceitou termos, redirecionando para página de termos');
         // 7. Se não aceitou termos, vai para página de termos
         navigate('/termo');
       }
     } catch (err) {
       console.error('❌ Erro na verificação de fluxo:', err);
       if (err.response?.status === 404) {
-        console.log('❌ Não tem registro de termos, redirecionando para página de termos');
         // 8. Se não tem registro de termos, vai para página de termos
         navigate('/termo');
       } else {
-        console.log('❌ Em caso de erro, redirecionando para página de termos (segurança)');
         // 9. Em caso de erro, vai para página de termos (segurança)
         navigate('/termo');
       }
@@ -80,24 +67,16 @@ export default function Login() {
     setLoading(true);
 
     try {
-      console.log('🔐 Tentando login com email:', email);
       const res = await api.post("/login", {
         email,
         senha,
       });
 
       if (res.status === 200) {
-        console.log('✅ Login bem-sucedido:', res.data);
         localStorage.setItem("usuario_id", res.data.usuario_id);
         localStorage.setItem("cadastro_email", email);
         localStorage.setItem("cadastro_senha", senha);
         localStorage.setItem("cadastro_tipo", res.data.tipo_usuario);
-        
-        console.log('💾 Dados salvos no localStorage:', {
-          usuario_id: res.data.usuario_id,
-          email: email,
-          tipo_usuario: res.data.tipo_usuario
-        });
         
         // Verifica fluxo do usuário
         await verificarFluxoUsuario(res.data.usuario_id);
@@ -137,8 +116,6 @@ export default function Login() {
     setLoading(true);
 
     try {
-      console.log('🔐 Tentando login com Google...');
-      
       // Persistir token Google para sessão
       const googleToken = credentialResponse.credential;
       const tokenExpiry = Date.now() + (60 * 60 * 1000); // 1 hora
@@ -147,25 +124,15 @@ export default function Login() {
       localStorage.setItem("google_token_expiry", tokenExpiry);
       localStorage.setItem("login_method", "google");
       
-      console.log('💾 Token Google persistido para sessão');
-      
       // Envia o token do Google para o backend
       const res = await api.post('/login/google', {
         credential: googleToken
       });
       
       if (res.status === 200) {
-        console.log('✅ Login Google bem-sucedido:', res.data);
         localStorage.setItem("usuario_id", res.data.usuario_id);
         localStorage.setItem("cadastro_email", res.data.email);
         localStorage.setItem("cadastro_tipo", res.data.tipo_usuario);
-        
-        console.log('💾 Dados salvos no localStorage (Google):', {
-          usuario_id: res.data.usuario_id,
-          email: res.data.email,
-          tipo_usuario: res.data.tipo_usuario,
-          login_method: "google"
-        });
         
         // Verifica fluxo do usuário
         await verificarFluxoUsuario(res.data.usuario_id);

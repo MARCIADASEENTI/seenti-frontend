@@ -8,6 +8,7 @@ import { useGoogleSession } from "./hooks/useGoogleSession";
 
 import SessionExpiryAlert from "./components/SessionExpiryAlert";
 import FeedbackSystem from "./components/FeedbackSystem";
+import { NotificacoesProvider } from "./contexts/NotificacoesContext";
 import "./index.css";
 
 function AppContent() {
@@ -27,13 +28,13 @@ function AppContent() {
   }
 
   return (
-    <>
+    <NotificacoesProvider>
       <SessionExpiryAlert />
       <BrowserRouter>
         <FeedbackSystem />
         <RouterCliente isAuthenticated={isAuthenticated} />
       </BrowserRouter>
-    </>
+    </NotificacoesProvider>
   );
 }
 

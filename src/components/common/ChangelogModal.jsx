@@ -127,3 +127,10 @@ export default function ChangelogModal({ isOpen, onClose }) {
   );
 }
 
+
+
+
+
+
+
+

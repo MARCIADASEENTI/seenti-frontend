@@ -2,15 +2,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import IconesGlobais from '../globais/IconesGlobais';
 
 export default function PaginaCliente() {
   const [cliente, setCliente] = useState(null);
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(true);
-  const [mostrarDados, setMostrarDados] = useState(false);
   const [agendamentos, setAgendamentos] = useState([]);
   const [anamnese, setAnamnese] = useState(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
+  
+
   
   // ✅ SISTEMA DE FEEDBACK COMPLETO
   const [feedback, setFeedback] = useState({
@@ -29,32 +31,21 @@ export default function PaginaCliente() {
       setErro('');
       setLoading(true);
 
-      console.log('🔍 PaginaCliente: Iniciando busca de dados do cliente...');
-      
       const cliente_id = localStorage.getItem('cliente_id');
       const usuario_id = localStorage.getItem('usuario_id');
       
-      console.log('🔍 PaginaCliente: Dados do localStorage:', {
-        cliente_id,
-        usuario_id
-      });
-      
       if (!cliente_id) {
-        console.log('❌ PaginaCliente: cliente_id não encontrado no localStorage');
         setErro('⚠️ Cliente não autenticado. Faça login novamente.');
         navigate('/login');
         return;
       }
 
       try {
-        console.log('🔍 PaginaCliente: Buscando dados do cliente:', cliente_id);
         const res = await api.get(`/clientes/${cliente_id}`);
         if (res.status === 200) {
           const data = res.data;
-          console.log('✅ PaginaCliente: Dados do cliente carregados:', data);
           setCliente(data);
         } else {
-          console.log('❌ PaginaCliente: Resposta não foi 200:', res.status);
           setErro('⚠️ Não foi possível carregar os dados do cliente.');
         }
       } catch (err) {
@@ -279,15 +270,6 @@ export default function PaginaCliente() {
 
   return (
     <div className="min-h-full">
-      {/* Controles de dados pessoais */}
-      <div className="mb-3 md:mb-4 flex justify-center">
-                  <button
-            onClick={() => setMostrarDados(!mostrarDados)}
-            className="w-full md:w-auto px-3 py-2 md:px-4 md:py-2 seenti-btn-primary text-xs md:text-sm font-medium"
-          >
-            {mostrarDados ? '👁️‍🗨️ Ocultar Dados' : '👁️ Mostrar Dados Pessoais'}
-          </button>
-      </div>
 
       {loading && (
         <div className="text-center py-6 md:py-8">
@@ -304,10 +286,36 @@ export default function PaginaCliente() {
 
       {cliente && (
         <>
-          <div className="text-center mb-4 md:mb-8">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold seenti-text-primary mb-3 md:mb-4 leading-tight">
-              Olá, {cliente?.nome_social ? cliente.nome_social.toUpperCase() : cliente?.primeiro_nome ? cliente.primeiro_nome.toUpperCase() : 'Cliente'}! Bem-vindo a de volta à sua jornada de bem-estar! ✅
-            </h1>
+          <div className="mb-4 md:mb-8" style={{ textAlign: 'left' }}>
+            {/* ✅ CORREÇÃO: Mensagem de boas-vindas com ícones globais na mesma linha */}
+            <div className="flex items-center justify-between mb-3 md:mb-4" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              width: '100%'
+            }}>
+              {/* ✅ Título centralizado com hierarquia tipográfica */}
+              <div className="flex-1" style={{ flex: 1, textAlign: 'left' }}>
+                <h1 className="font-cliente-destaque seenti-text-primary leading-tight">
+                  Olá, {cliente?.nome_social ? cliente.nome_social.toUpperCase() : cliente?.primeiro_nome ? cliente.primeiro_nome.toUpperCase() : 'Cliente'}! Bem-vindo à sua jornada de bem-estar! ✅
+                </h1>
+                {/* ✅ NOVA: Mensagem adicional de acolhimento com fonte secundária */}
+                <p className="font-info-secundaria seenti-text-secondary mt-2 md:mt-3">
+                  Como está se sentindo hoje?
+                </p>
+              </div>
+              
+              {/* ✅ Ícones globais na mesma linha */}
+              <div className="flex-shrink-0" style={{ flexShrink: 0, marginLeft: '1rem' }}>
+                <IconesGlobais 
+                  posicao="direita" 
+                  tamanho="normal" 
+                  mostrarBadge={true}
+                />
+              </div>
+            </div>
+            {/* ✅ REMOVIDO: Nome Social - Comentado para análise futura */}
+            {/* 
             {cliente?.nome_social ? (
               <p className="text-lg seenti-text-secondary mb-2">
                 Nome Social: {cliente.nome_social}
@@ -317,106 +325,126 @@ export default function PaginaCliente() {
                 {cliente.primeiro_nome} {cliente.sobrenome}
               </p>
             ) : null}
-            <p className="seenti-text-secondary mb-2">Última atualização: {new Date().toLocaleTimeString()}</p>
+            */}
+            
+            {/* ✅ REMOVIDO: Última atualização - Horário disponível no dispositivo */}
           </div>
 
           {/* ✅ REMOVIDO: Seção de Status - Sprint 07 */}
+          {/* ✅ REMOVIDO: Seção de Dados Pessoais - Movida para Configurações */}
 
-          {mostrarDados && (
-            <section
-              aria-labelledby="dados-pessoais-title"
-              className="seenti-card seenti-bg-success p-3 md:p-4 mb-3 md:mb-4"
-            >
-              <h3 id="dados-pessoais-title" className="font-bold mb-3 md:mb-4 text-white text-base md:text-lg">
-                📋 Dados Pessoais
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 text-gray-800 text-sm md:text-base">
-                <div className="p-2 md:p-3 bg-white rounded border">
-                  <strong>Nome:</strong> {cliente.primeiro_nome} {cliente.sobrenome}
-                </div>
-                {cliente.nome_social && (
-                  <div className="p-2 md:p-3 bg-white rounded border">
-                    <strong>Nome Social:</strong> {cliente.nome_social}
-                  </div>
-                )}
-                <div className="p-2 md:p-3 bg-white rounded border">
-                  <strong>CPF:</strong> {formatarCPF(cliente.cpf)}
-                </div>
-                <div className="p-2 md:p-3 bg-white rounded border">
-                  <strong>Data de Nascimento:</strong> {formatarData(cliente.data_nascimento)}
-                </div>
-                {cliente.genero && (
-                  <div className="p-2 md:p-3 bg-white rounded border">
-                    <strong>Gênero:</strong> {cliente.genero}
-                  </div>
-                )}
-                <div className="p-2 md:p-3 bg-white rounded border">
-                  <strong>Telefone:</strong> {formatarTelefone(cliente.contato?.telefone)}
-                </div>
-                {cliente.contato?.email_alternativo && (
-                  <div className="p-2 md:p-3 bg-white rounded border">
-                    <strong>Email Alternativo:</strong> {cliente.contato.email_alternativo}
-                  </div>
-                )}
-              </div>
+          {/* ✅ REMOVIDO: Seção de Feedback movida para depois das funcionalidades */}
 
-              {/* Endereço */}
-              <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-green-200">
-                <h4 className="font-semibold mb-2 md:mb-3 text-green-700 text-sm md:text-base">📍 Endereço</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
-                  <div className="p-2 md:p-3 bg-white rounded border">
-                    <strong>Rua:</strong> {cliente.endereco?.rua}, {cliente.endereco?.numero}
+          {/* ✅ CORRIGIDO: Seção de Funcionalidades - Layout original com bordas pretas */}
+          <section className="mb-8 md:mb-12">
+            <h2 className="font-cta text-lg md:text-xl seenti-text-primary mb-4 md:mb-6 flex items-center">
+              <span className="mr-2 md:mr-3">📋</span>
+              O que você deseja fazer?
+            </h2>
+            
+            <div className="flex flex-col space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 lg:gap-6 md:space-y-0">
+              {/* ✅ Card Anamnese - Layout original */}
+              <button
+                onClick={handleNovaAnamnese}
+                className="w-full p-4 md:p-5 rounded-lg border-2 border-black hover:border-green-500 hover:bg-green-50 transition-all duration-200 text-left group bg-white"
+              >
+                <div className="flex items-center space-x-3 md:space-x-4">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                    <span className="text-green-600 text-lg md:text-xl">📋</span>
                   </div>
-                  {cliente.endereco?.complemento && (
-                    <div className="p-2 md:p-3 bg-white rounded border">
-                      <strong>Complemento:</strong> {cliente.endereco.complemento}
-                    </div>
-                  )}
-                  <div className="p-2 md:p-3 bg-white rounded border">
-                    <strong>Bairro:</strong> {cliente.endereco?.bairro}
-                  </div>
-                  <div className="p-2 md:p-3 bg-white rounded border">
-                    <strong>Cidade:</strong> {cliente.endereco?.cidade} - {cliente.endereco?.estado}
-                  </div>
-                  <div className="p-2 md:p-3 bg-white rounded border">
-                    <strong>CEP:</strong> {cliente.endereco?.cep}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-cta seenti-text-primary group-hover:text-green-700 text-sm md:text-base mb-1">
+                      Anamnese
+                    </h4>
+                    <p className="font-info-secundaria text-xs md:text-sm seenti-text-secondary">
+                      Preencher Anamnese
+                    </p>
                   </div>
                 </div>
-              </div>
-            </section>
-          )}
+              </button>
 
-          {/* Seção de Feedback para o Usuário */}
-          <section className="seenti-card seenti-bg-primary p-3 md:p-4 mb-3 md:mb-4">
-            <h3 className="font-bold mb-3 md:mb-4 text-white text-base md:text-lg">
-              💬 Sua Opinião é Importante
+              {/* ✅ Card Agendamentos - Layout original */}
+              <button
+                onClick={() => navigate('/agendamentos')}
+                className="w-full p-4 md:p-5 rounded-lg border-2 border-black hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 text-left group bg-white"
+              >
+                <div className="flex items-center space-x-3 md:space-x-4">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                    <span className="text-blue-600 text-lg md:text-xl">📅</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-cta seenti-text-primary group-hover:text-blue-700 text-sm md:text-base mb-1">
+                      Agendamentos
+                    </h4>
+                    <p className="font-info-secundaria text-xs md:text-sm seenti-text-secondary">
+                      Agendar sessão
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* ✅ Card Falar com o Terapeuta - Layout original */}
+              <button
+                onClick={() => navigate('/fale-com-terapeuta')}
+                className="w-full p-4 md:p-5 rounded-lg border-2 border-black hover:border-purple-500 hover:bg-purple-50 transition-all duration-200 text-left group bg-white"
+              >
+                <div className="flex items-center space-x-3 md:space-x-4">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                    <span className="text-purple-600 text-lg md:text-xl">💬</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-cta seenti-text-primary group-hover:text-purple-700 text-sm md:text-base mb-1">
+                      Falar com o Terapeuta
+                    </h4>
+                    <p className="font-info-secundaria text-xs md:text-sm seenti-text-secondary">
+                      Contatos e Saber mais
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </section>
+
+          {/* ✅ MELHORADO: Título da seção de feedback com fonte menor e ícone diferenciado */}
+          <div className="text-center mb-4 md:mb-6">
+            <h3 className="font-cta seenti-text-primary text-base md:text-lg">
+              ✨ Sua opinião é muito importante! Faça seu comentário ou deixe sua sugestão!
             </h3>
+          </div>
+
+          {/* ✅ MELHORADO: Seção de Feedback sem título interno */}
+          <section className="bg-white p-4 md:p-5 rounded-lg shadow-sm border-2 border-black">
             
             {feedback.enviado ? (
-              <div className="text-center py-3 md:py-4">
-                <p className="text-green-700 font-medium mb-3 text-sm md:text-base">Obrigado pelo seu feedback!</p>
+              <div className="text-center py-4 md:py-5">
+                <div className="w-12 h-12 md:w-14 md:h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
+                  <span className="text-green-600 text-xl md:text-2xl">✅</span>
+                </div>
+                <p className="text-green-700 font-medium mb-4 text-sm md:text-base">
+                  Obrigado pelo seu feedback!
+                </p>
                 <button
                   onClick={resetarFeedback}
-                  className="px-3 py-2 seenti-btn-secondary text-sm"
+                  className="px-4 py-2 seenti-btn-secondary text-sm md:text-base"
                 >
                   Enviar Novo Feedback
                 </button>
               </div>
             ) : (
               <>
-                <p className="seenti-text-primary mb-3 md:mb-4 text-xs md:text-sm">
+                <p className="font-info-secundaria seenti-text-secondary mb-4 md:mb-5 text-sm md:text-base">
                   Ajude-nos a melhorar sua experiência na plataforma. Como está sendo sua jornada até agora?
                 </p>
                 
-                <div className="space-y-3 md:space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-                    <span className="text-xs md:text-sm seenti-text-secondary font-medium">Experiência geral:</span>
+                <div className="space-y-4 md:space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <span className="text-sm md:text-base seenti-text-secondary font-medium">Experiência geral:</span>
                     <div className="flex space-x-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
                           key={star}
                           onClick={() => handleAvaliacaoChange(star)}
-                          className={`text-yellow-400 hover:text-yellow-500 text-lg md:text-xl transition-colors ${
+                          className={`text-yellow-400 hover:text-yellow-500 text-xl md:text-2xl transition-colors ${
                             feedback.avaliacao >= star ? 'opacity-100' : 'opacity-50'
                           }`}
                           title={`${star} estrela${star > 1 ? 's' : ''}`}
@@ -427,19 +455,17 @@ export default function PaginaCliente() {
                       ))}
                     </div>
                     {feedback.avaliacao > 0 && (
-                      <span className="text-xs seenti-text-secondary">
+                      <span className="text-sm seenti-text-secondary">
                         ({feedback.avaliacao} estrela{feedback.avaliacao > 1 ? 's' : ''})
                       </span>
                     )}
                   </div>
                   
-                  <div>
-                    <label className="block text-xs md:text-sm font-medium seenti-text-primary mb-2">
-                      Comentários ou sugestões:
-                    </label>
+                  <div className="mt-6">
+                    {/* ✅ MELHORADO: Textarea sem label específico */}
                     <textarea
-                      className="w-full p-2 md:p-3 border border-seenti-primary/30 rounded-md focus:outline-none focus:ring-2 focus:ring-seenti-primary resize-none text-xs md:text-sm"
-                      rows="2"
+                      className="w-full p-4 md:p-5 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-seenti-primary focus:border-seenti-primary resize-none text-sm md:text-base"
+                      rows="6"
                       placeholder="Conte-nos como podemos melhorar..."
                       value={feedback.comentarios}
                       onChange={handleComentariosChange}
@@ -449,22 +475,22 @@ export default function PaginaCliente() {
                   
                   {/* Mensagens de feedback */}
                   {feedbackSucesso && (
-                    <div className="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-md text-xs md:text-sm">
+                    <div className="bg-green-50 border-2 border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm md:text-base">
                       {feedbackSucesso}
                     </div>
                   )}
                   
                   {feedbackErro && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-xs md:text-sm">
+                    <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm md:text-base">
                       {feedbackErro}
                     </div>
                   )}
                   
-                  <div className="flex justify-end">
+                  <div className="flex justify-end pt-2">
                     <button
                       onClick={handleEnviarFeedback}
                       disabled={enviandoFeedback || feedback.avaliacao === 0}
-                      className={`px-3 py-2 rounded-md text-xs md:text-sm font-medium transition-colors ${
+                      className={`font-cta px-4 py-2 rounded-lg text-sm md:text-base transition-colors ${
                         enviandoFeedback || feedback.avaliacao === 0
                           ? 'seenti-btn-primary cursor-not-allowed'
                           : 'seenti-btn-primary hover:opacity-80'
@@ -472,7 +498,7 @@ export default function PaginaCliente() {
                     >
                       {enviandoFeedback ? (
                         <>
-                          <span className="animate-spin inline-block w-3 h-3 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                          <span className="animate-spin inline-block w-4 h-4 md:w-5 md:h-5 border-2 border-white border-t-transparent rounded-full mr-2"></span>
                           Enviando...
                         </>
                       ) : (
@@ -483,61 +509,6 @@ export default function PaginaCliente() {
                 </div>
               </>
             )}
-          </section>
-
-          <section
-            aria-labelledby="funcionalidades-title"
-            className="bg-white border border-seenti-primary/30 p-3 md:p-4 rounded-lg shadow-sm"
-          >
-            <h3 id="funcionalidades-title" className="font-bold mb-3 md:mb-4 seenti-text-primary text-base md:text-lg">
-              🚀 Funcionalidades Disponíveis
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
-              <button
-                onClick={handleNovaAnamnese}
-                className="p-2 md:p-3 border border-seenti-primary/30 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all duration-200 text-left group"
-              >
-                <div className="flex items-center space-x-2 md:space-x-3">
-                  <div className="w-5 h-5 md:w-6 md:h-6 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                    <span className="text-green-600 text-sm md:text-base">📋</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold seenti-text-primary group-hover:text-green-700 text-sm md:text-base">Nova Anamnese</h4>
-                    <p className="text-xs md:text-sm seenti-text-secondary">Atualizar dados de saúde</p>
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => navigate('/agendamentos')}
-                className="p-2 md:p-3 border border-seenti-primary/30 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-left group"
-              >
-                <div className="flex items-center space-x-2 md:space-x-3">
-                  <div className="w-5 h-5 md:w-6 md:h-6 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                    <span className="text-blue-600 text-sm md:text-base">📅</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold seenti-text-primary group-hover:text-blue-700 text-sm md:text-base">Agendamentos</h4>
-                    <p className="text-xs md:text-sm seenti-text-secondary">Gerenciar consultas</p>
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => navigate('/historico')}
-                className="p-2 md:p-3 border border-seenti-primary/30 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 text-left group"
-              >
-                <div className="flex items-center space-x-2 md:space-x-3">
-                  <div className="w-5 h-5 md:w-6 md:h-6 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-                    <span className="text-purple-600 text-sm md:text-base">📊</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold seenti-text-primary group-hover:text-purple-700 text-sm md:text-base">Histórico</h4>
-                    <p className="text-xs md:text-sm seenti-text-secondary">Sessões realizadas</p>
-                  </div>
-                </div>
-              </button>
-            </div>
           </section>
         </>
       )}

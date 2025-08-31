@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import IconesGlobais from '../globais/IconesGlobais';
+import { Mail, Instagram, MessageCircle } from "lucide-react";
 
 const FaleComTerapeuta = () => {
   const navigate = useNavigate();
@@ -22,27 +24,27 @@ const FaleComTerapeuta = () => {
     catalogo: [
       {
         id: 1,
-        titulo: "Terapia Manual",
-        descricao: "Técnicas manuais para alívio de dores e tensões musculares",
+        titulo: "✨ Top Corpus",
+        descricao: "Massagem corporal exclusiva para remodelar e promover bem-estar integral.",
         duracao: "60 min",
-        preco: "R$ 120,00",
-        beneficios: ["Alívio imediato", "Melhora da mobilidade", "Redução do estresse"]
+        preco: "R$ 100,00",
+        beneficios: ["Auxilia na tonificação", "Melhora da circulação", "Redução de edemas", "Sensação de leveza no corpo"]
       },
       {
         id: 2,
-        titulo: "Fisioterapia Esportiva",
-        descricao: "Reabilitação e prevenção de lesões esportivas",
+        titulo: "✨ Top Face",
+        descricao: "Massagem facial para revitalizar, drenar e relaxar a expressão, trazendo frescor imediato.",
         duracao: "45 min",
         preco: "R$ 100,00",
-        beneficios: ["Recuperação rápida", "Prevenção de lesões", "Melhora do desempenho"]
+        beneficios: ["Reduz inchaço e olheiras", "Suaviza linhas de expressão", "Melhora a circulação", "Devolve viço à pele"]
       },
       {
         id: 3,
-        titulo: "Pilates Terapêutico",
-        descricao: "Exercícios para fortalecimento e reeducação postural",
+        titulo: "✨ Top Relax",
+        descricao: "Massagem relaxante para aliviar tensões, reduzir estresse e restaurar energia.",
         duracao: "50 min",
-        preco: "R$ 90,00",
-        beneficios: ["Fortalecimento muscular", "Correção postural", "Bem-estar geral"]
+        preco: "R$ 100,00",
+        beneficios: ["Relaxa corpo e mente", "Reduz ansiedade", "Melhora a qualidade do sono", "Proporciona bem-estar profundo"]
       }
     ],
     conteudo_cientifico: [
@@ -85,7 +87,7 @@ const FaleComTerapeuta = () => {
       },
       {
         tipo: "horario",
-        valor: "Segunda a Sexta: 8h às 18h | Sábado: 8h às 12h",
+        valor: "Seg-Sex: 8h-18h | Sáb: 8h-12h",
         label: "Horário de Atendimento"
       }
     ],
@@ -138,10 +140,6 @@ const FaleComTerapeuta = () => {
     }
   };
 
-  const handleRedeSocial = (url) => {
-    window.open(url, '_blank');
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center seenti-bg-gradient">
@@ -165,68 +163,102 @@ const FaleComTerapeuta = () => {
 
   return (
     <div className="min-h-screen seenti-bg-white">
-      {/* ✅ NOVO: Botão Voltar ao Perfil */}
+      {/* ✅ NOVO: Header com ícones na mesma linha */}
       <div className="px-4 py-6">
         <div className="max-w-6xl mx-auto">
-          <button
-            onClick={() => navigate('/perfil')}
-            className="seenti-btn-secondary px-4 py-2 rounded-lg hover:seenti-hover-bg-secondary-dark transition-all duration-200 flex items-center space-x-2"
-          >
-            <span>←</span>
-            <span>Voltar ao Perfil</span>
-          </button>
-        </div>
-      </div>
-      
-      {/* Título da Página */}
-      <div className="py-8 px-4 seenti-bg-white">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold text-center mb-4 seenti-text-primary">
-            {hubData.hero.titulo}
-          </h1>
-          <p className="text-lg text-center mb-8 max-w-3xl mx-auto seenti-text-secondary">
-            {hubData.hero.descricao}
-          </p>
-          <div className="text-center">
-            <button 
-              onClick={handleAgendarConsulta}
-              className="seenti-btn-primary text-lg px-8 py-4 hover:seenti-hover-bg-primary-dark transition-all duration-300 seenti-shadow-lg"
+          <div className="flex items-center justify-between mb-4" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            {/* ✅ Ícone de casa (Voltar ao Perfil) */}
+            <button
+              onClick={() => navigate('/perfil')}
+              className="text-seenti-primary p-2 rounded-lg hover:bg-seenti-primary/10 transition-all duration-200 flex items-center space-x-2"
+              title="Voltar ao Perfil"
+              style={{ flexShrink: 0, border: 'none', background: 'transparent' }}
             >
-              {hubData.hero.cta}
+              <span className="text-xl">🏠</span>
             </button>
+            
+            {/* ✅ Ícones globais na mesma linha */}
+            <div className="flex-shrink-0" style={{ flexShrink: 0 }}>
+              <IconesGlobais 
+                posicao="direita" 
+                tamanho="normal" 
+                mostrarBadge={true}
+              />
+            </div>
           </div>
         </div>
       </div>
+      
+      {/* Destaques de Contato - NOVO TOPO DA PÁGINA */}
+      <section className="py-10 text-center seenti-bg-white">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="font-cliente-destaque text-2xl mb-6 seenti-text-primary">Entre em Contato</h2>
+          <div className="flex justify-center gap-6 flex-wrap">
+            {/* WhatsApp */}
+            <a
+              href="https://wa.me/5531999999999"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="WhatsApp"
+              className="w-16 h-16 flex items-center justify-center rounded-full bg-green-500 text-white text-2xl shadow-md hover:scale-110 transition-transform"
+            >
+              <MessageCircle size={28} />
+            </a>
+
+            {/* Instagram */}
+            <a
+              href="https://instagram.com/seuperfil"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-tr from-purple-600 via-pink-500 to-yellow-400 text-white text-2xl shadow-md hover:scale-110 transition-transform"
+            >
+              <Instagram size={28} />
+            </a>
+
+            {/* E-mail */}
+            <a
+              href="mailto:seuemail@exemplo.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="E-mail"
+              className="w-16 h-16 flex items-center justify-center rounded-full bg-blue-500 text-white text-2xl shadow-md hover:scale-110 transition-transform"
+            >
+              <Mail size={28} />
+            </a>
+          </div>
+        </div>
+      </section>
 
       {/* Catálogo Section */}
       <section className="py-16 px-4 seenti-bg-white">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 seenti-text-primary">
+          <h2 className="font-cliente-destaque text-center mb-12 seenti-text-primary">
             Nossos Protocolos
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {hubData.catalogo.map((protocolo) => (
               <div key={protocolo.id} className="seenti-card hover:seenti-hover-shadow-lg transition-all duration-300">
                 <div className="p-6">
-                  <h3 className="text-xl font-bold mb-3 seenti-text-primary">
+                  <h3 className="font-cta text-xl mb-3 seenti-text-primary">
                     {protocolo.titulo}
                   </h3>
-                  <p className="seenti-text-secondary mb-4">
+                  <p className="font-info-secundaria seenti-text-secondary mb-4">
                     {protocolo.descricao}
                   </p>
                   <div className="flex justify-between items-center mb-4">
-                    <span className="seenti-text-primary font-semibold">
+                    <span className="font-cta seenti-text-primary">
                       {protocolo.duracao}
                     </span>
-                    <span className="seenti-text-success font-bold text-lg">
+                    <span className="font-cta seenti-text-success text-lg">
                       {protocolo.preco}
                     </span>
                   </div>
                   <div className="mb-4">
-                    <h4 className="font-semibold seenti-text-primary mb-2">Benefícios:</h4>
+                    <h4 className="font-cta seenti-text-primary mb-2">Benefícios:</h4>
                     <ul className="space-y-1">
                       {protocolo.beneficios.map((beneficio, index) => (
-                        <li key={index} className="flex items-center seenti-text-secondary">
+                        <li key={index} className="flex items-center font-info-secundaria seenti-text-secondary">
                           <span className="seenti-text-success mr-2">✓</span>
                           {beneficio}
                         </li>
@@ -243,7 +275,7 @@ const FaleComTerapeuta = () => {
       {/* Conteúdo Científico Section */}
       <section className="py-16 px-4 seenti-bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 seenti-text-primary">
+          <h2 className="font-cliente-destaque text-center mb-12 seenti-text-primary">
             Conteúdo Científico
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -251,17 +283,17 @@ const FaleComTerapeuta = () => {
               <div key={artigo.id} className="seenti-card hover:seenti-hover-shadow-lg transition-all duration-300">
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="seenti-bg-primary/10 seenti-text-primary px-3 py-1 rounded-full text-sm font-medium">
+                    <span className="font-cta seenti-bg-primary/10 seenti-text-primary px-3 py-1 rounded-full text-sm">
                       {artigo.categoria}
                     </span>
-                    <span className="seenti-text-secondary text-sm">
+                    <span className="font-info-secundaria seenti-text-secondary text-sm">
                       {new Date(artigo.data).toLocaleDateString('pt-BR')}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold mb-3 seenti-text-primary">
+                  <h3 className="font-cta text-xl mb-3 seenti-text-primary">
                     {artigo.titulo}
                   </h3>
-                  <p className="seenti-text-secondary">
+                  <p className="font-info-secundaria seenti-text-secondary">
                     {artigo.resumo}
                   </p>
                 </div>
@@ -274,7 +306,7 @@ const FaleComTerapeuta = () => {
       {/* Canais Section */}
       <section className="py-16 px-4 seenti-bg-white">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 seenti-text-primary">
+          <h2 className="font-cliente-destaque text-center mb-12 seenti-text-primary">
             Entre em Contato
           </h2>
           
@@ -286,16 +318,16 @@ const FaleComTerapeuta = () => {
                 <div className="flex items-center space-x-3">
                   <span className="text-xl">📞</span>
                   <div>
-                    <span className="font-medium seenti-text-primary">Telefone:</span>
-                    <span className="ml-2 seenti-text-secondary">+55 11 3333-3333</span>
+                    <span className="font-cta seenti-text-primary">Telefone:</span>
+                    <span className="font-info-secundaria ml-2 seenti-text-secondary">+55 11 3333-3333</span>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-3">
                   <span className="text-xl">✉️</span>
                   <div>
-                    <span className="font-medium seenti-text-primary">E-mail:</span>
-                    <span className="ml-2 seenti-text-secondary">contato@seenti.com.br</span>
+                    <span className="font-cta seenti-text-primary">E-mail:</span>
+                    <span className="font-info-secundaria ml-2 seenti-text-secondary">contato@seenti.com.br</span>
                   </div>
                 </div>
               </div>
@@ -305,47 +337,20 @@ const FaleComTerapeuta = () => {
                 <div className="flex items-start space-x-3">
                   <span className="text-xl mt-1">📍</span>
                   <div>
-                    <span className="font-medium seenti-text-primary">Endereço:</span>
-                    <span className="ml-2 seenti-text-secondary">Rua das Flores, 123 - São Paulo/SP</span>
+                    <span className="font-cta seenti-text-primary">Endereço:</span>
+                    <span className="font-info-secundaria ml-2 seenti-text-secondary">Rua das Flores, 123 - São Paulo/SP</span>
                   </div>
                 </div>
                 
                 <div className="flex items-start space-x-3">
                   <span className="text-xl mt-1">🕒</span>
                   <div>
-                    <span className="font-medium seenti-text-primary">Horário:</span>
-                    <span className="ml-2 seenti-text-secondary">Seg-Sex: 8h-18h | Sáb: 8h-12h</span>
+                    <span className="font-cta seenti-text-primary">Horário:</span>
+                    <span className="font-info-secundaria ml-2 seenti-text-secondary">Seg-Sex: 8h-18h | Sáb: 8h-12h</span>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Redes Sociais Section */}
-      <section className="py-16 px-4 seenti-bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 seenti-text-primary">
-            Siga-nos nas Redes Sociais
-          </h2>
-          
-          <div className="flex justify-center space-x-6">
-            {hubData.redes_sociais.map((rede) => (
-              <button
-                key={rede.tipo}
-                onClick={() => handleRedeSocial(rede.url)}
-                className={`${rede.cor} text-white p-4 rounded-full hover:opacity-90 transition-all duration-300 seenti-shadow-lg hover:scale-110 transform`}
-                title={`Siga-nos no ${rede.label}`}
-              >
-                <div className="text-2xl">
-                  {rede.tipo === 'instagram' && '📸'}
-                  {rede.tipo === 'facebook' && '📘'}
-                  {rede.tipo === 'pinterest' && '📌'}
-                  {rede.tipo === 'linkedin' && '💼'}
-                </div>
-              </button>
-            ))}
           </div>
         </div>
       </section>

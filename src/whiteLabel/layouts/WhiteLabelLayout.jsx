@@ -6,11 +6,6 @@ import './WhiteLabelLayout.css';
 const WhiteLabelLayout = ({ children }) => {
   const [logoError, setLogoError] = useState(false);
   
-  // Debug: verificar se o brand está sendo carregado corretamente
-  console.log('🔍 WhiteLabelLayout: brand config:', brand);
-  console.log('🔍 WhiteLabelLayout: primaryColor:', brand?.primaryColor);
-  console.log('🔍 WhiteLabelLayout: secondaryColor:', brand?.secondaryColor);
-  
   const layoutStyle = {
     '--primary-color': brand.primaryColor,
     '--secondary-color': brand.secondaryColor,

@@ -86,10 +86,3 @@ export const themes = {
 
 // 🎯 TEMA ATUAL (padrão: Seenti oficial)
 export const currentTheme = themes.default;
-
-// 🔍 DEBUG: verificar se os temas estão sendo carregados
-console.log('🎨 Temas carregados:', themes);
-console.log('🎨 Tema padrão (Seenti oficial):', themes.default);
-console.log('🎨 Tema parceiroX:', themes.parceiroX);
-console.log('🎨 Tema atual:', currentTheme);
-console.log('🎨 Cores oficiais Seenti:', currentTheme.theme?.colors);

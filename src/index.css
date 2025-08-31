@@ -49,6 +49,55 @@ body {
   width: 100%;
 }
 
+/* 🔤 HIERARQUIA TIPOGRÁFICA - CLASSES ESPECÍFICAS */
+/* Nome do cliente (destaque) - Poppins Bold ou Nunito SemiBold */
+.font-cliente-destaque {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 1.5rem !important;
+  line-height: 1.2 !important;
+}
+
+@media (min-width: 768px) {
+  .font-cliente-destaque {
+    font-size: 2rem !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .font-cliente-destaque {
+    font-size: 2.5rem !important;
+  }
+}
+
+/* Informações secundárias - Inter Rounded Regular ou Quicksand Regular */
+.font-info-secundaria {
+  font-family: 'Quicksand', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 1rem !important;
+  line-height: 1.4 !important;
+}
+
+@media (min-width: 768px) {
+  .font-info-secundaria {
+    font-size: 1.125rem !important;
+  }
+}
+
+/* Botões e chamadas para ação - Nunito/Poppins Medium */
+.font-cta {
+  font-family: 'Nunito', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  line-height: 1.3 !important;
+}
+
+@media (min-width: 768px) {
+  .font-cta {
+    font-size: 1rem !important;
+  }
+}
+
 /* 🎨 APLICAÇÃO GLOBAL DOS COMPONENTES SEENTI */
 button, .btn {
   font-family: var(--seenti-font-primary, 'Inter, sans-serif');

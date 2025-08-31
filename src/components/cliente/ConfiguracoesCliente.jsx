@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { brand } from '@white/config/brandConfig';
 import { useTheme } from '../../hooks/useTheme';
 import api from '../../services/api';
+import IconesGlobais from '../globais/IconesGlobais';
 import './ConfiguracoesCliente.css';
 
 const ConfiguracoesCliente = () => {
@@ -12,6 +13,10 @@ const ConfiguracoesCliente = () => {
   const [saving, setSaving] = useState(false);
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
+
+  // ✅ NOVO: Estado para mostrar dados pessoais
+  const [mostrarDados, setMostrarDados] = useState(false);
+  const [dadosCliente, setDadosCliente] = useState(null);
 
   // Estado das configurações
   const [configuracoes, setConfiguracoes] = useState({
@@ -32,6 +37,25 @@ const ConfiguracoesCliente = () => {
     tema: 'claro',
     fuso_horario: 'America/Sao_Paulo'
   });
+
+  // ✅ NOVO: Carregar dados do cliente
+  useEffect(() => {
+    const carregarDadosCliente = async () => {
+      try {
+        const cliente_id = localStorage.getItem('cliente_id');
+        if (!cliente_id) return;
+
+        const response = await api.get(`/clientes/${cliente_id}`);
+        if (response.status === 200) {
+          setDadosCliente(response.data);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar dados do cliente:', error);
+      }
+    };
+
+    carregarDadosCliente();
+  }, []);
 
   // Carregar configurações existentes
   useEffect(() => {
@@ -195,19 +219,140 @@ const ConfiguracoesCliente = () => {
     );
   }
 
+  // ✅ NOVO: Funções auxiliares para formatação de dados
+  const formatarCPF = (cpf) => {
+    if (!cpf) return '';
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  };
+
+  const formatarTelefone = (telefone) => {
+    if (!telefone) return '';
+    return telefone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  };
+
+  const formatarData = (data) => {
+    if (!data) return '';
+    const d = new Date(data);
+    return d.toLocaleDateString('pt-BR');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header da Página */}
         <div className="page-header mb-8">
-          <div className="flex items-center space-x-3 mb-2">
-            <div className="header-icon">
-              <span>⚙️</span>
+          {/* ✅ CORRIGIDO: Header com ícones na mesma linha - CSS EXPLÍCITO */}
+          <div className="flex items-center justify-between mb-4" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            {/* ✅ Ícone de casa (Voltar ao Perfil) */}
+            <button
+              onClick={() => navigate('/perfil')}
+              className="text-seenti-primary p-2 rounded-lg hover:bg-seenti-primary/10 transition-all duration-200 flex items-center space-x-2"
+              title="Voltar ao Perfil"
+              style={{ flexShrink: 0, border: 'none', background: 'transparent' }}
+            >
+              <span className="text-xl">🏠</span>
+            </button>
+            
+            {/* ✅ Título centralizado com hierarquia tipográfica */}
+            <div className="text-center flex-1" style={{ flex: 1, textAlign: 'center' }}>
+              <div className="flex items-center justify-center space-x-3 mb-2">
+                <div className="header-icon">
+                  <span>⚙️</span>
+                </div>
+                <h1 className="font-cliente-destaque">Configurações</h1>
+              </div>
+              <p className="font-info-secundaria text-lg text-gray-600">Personalize sua experiência no Seenti</p>
             </div>
-            <h1 className="text-3xl font-bold">Configurações</h1>
+            
+            {/* ✅ Ícones globais na mesma linha */}
+            <div className="flex-shrink-0" style={{ flexShrink: 0 }}>
+              <IconesGlobais 
+                posicao="direita" 
+                tamanho="normal" 
+                mostrarBadge={true}
+              />
+            </div>
           </div>
-          <p className="text-lg text-gray-600">Personalize sua experiência no Seenti</p>
         </div>
+
+        {/* ✅ NOVO: Botão Mostrar Dados Pessoais */}
+        <div className="mb-6 flex justify-center">
+          <button
+            onClick={() => setMostrarDados(!mostrarDados)}
+            className="font-cta px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 flex items-center space-x-2"
+          >
+            <span>{mostrarDados ? '👁️‍🗨️ Ocultar Dados' : '👁️ Mostrar Dados Pessoais'}</span>
+          </button>
+        </div>
+
+        {/* ✅ NOVO: Seção de Dados Pessoais */}
+        {mostrarDados && dadosCliente && (
+          <div className="config-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4">
+              <div className="flex items-center space-x-3">
+                <span className="text-white text-2xl">📋</span>
+                <h2 className="font-cta text-xl text-white">Dados Pessoais</h2>
+              </div>
+              <p className="font-info-secundaria text-green-100 text-sm mt-1">Suas informações pessoais e de contato</p>
+            </div>
+            
+            <div className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div className="p-3 bg-gray-50 rounded border">
+                  <strong className="font-cta">Nome:</strong> <span className="font-info-secundaria">{dadosCliente.primeiro_nome} {dadosCliente.sobrenome}</span>
+                </div>
+                {dadosCliente.nome_social && (
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <strong>Nome Social:</strong> {dadosCliente.nome_social}
+                  </div>
+                )}
+                <div className="p-3 bg-gray-50 rounded border">
+                  <strong>CPF:</strong> {formatarCPF(dadosCliente.cpf)}
+                </div>
+                <div className="p-3 bg-gray-50 rounded border">
+                  <strong>Data de Nascimento:</strong> {formatarData(dadosCliente.data_nascimento)}
+                </div>
+                {dadosCliente.genero && (
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <strong>Gênero:</strong> {dadosCliente.genero}
+                  </div>
+                )}
+                <div className="p-3 bg-gray-50 rounded border">
+                  <strong>Telefone:</strong> {formatarTelefone(dadosCliente.contato?.telefone)}
+                </div>
+                {dadosCliente.contato?.email_alternativo && (
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <strong>Email Alternativo:</strong> {dadosCliente.contato.email_alternativo}
+                  </div>
+                )}
+              </div>
+
+              {/* Endereço */}
+              <div className="pt-4 border-t border-gray-200">
+                <h4 className="font-cta mb-3 text-green-700">📍 Endereço</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <strong>Rua:</strong> {dadosCliente.endereco?.rua}, {dadosCliente.endereco?.numero}
+                  </div>
+                  {dadosCliente.endereco?.complemento && (
+                    <div className="p-3 bg-gray-50 rounded border">
+                      <strong>Complemento:</strong> {dadosCliente.endereco.complemento}
+                    </div>
+                  )}
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <strong>Bairro:</strong> {dadosCliente.endereco?.bairro}
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <strong>Cidade:</strong> {dadosCliente.endereco?.cidade} - {dadosCliente.endereco?.estado}
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <strong>CEP:</strong> {dadosCliente.endereco?.cep}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Mensagens de Status */}
         {erro && (
@@ -230,17 +375,17 @@ const ConfiguracoesCliente = () => {
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
               <div className="flex items-center space-x-3">
                 <span className="text-white text-2xl">🔔</span>
-                <h2 className="text-xl font-semibold text-white">Notificações</h2>
+                <h2 className="font-cta text-xl text-white">Notificações</h2>
               </div>
-              <p className="text-blue-100 text-sm mt-1">Gerencie como você recebe informações</p>
+              <p className="font-info-secundaria text-blue-100 text-sm mt-1">Gerencie como você recebe informações</p>
             </div>
             
             <div className="p-6 space-y-4">
               {/* Notificações por Email */}
               <div className="config-item flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">📧 Email</h3>
-                  <p className="text-sm text-gray-600">Notificações importantes por email</p>
+                  <h3 className="font-cta text-gray-900">📧 Email</h3>
+                  <p className="font-info-secundaria text-sm text-gray-600">Notificações importantes por email</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input

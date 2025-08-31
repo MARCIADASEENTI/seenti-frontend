@@ -3,20 +3,59 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../hooks/useTheme';
 import { brand } from '@white/config/brandConfig';
 import api from '../../services/api';
+import IconesGlobais from '../globais/IconesGlobais';
 
 const HistoricoSessoes = () => {
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
-  const [sessoes, setSessoes] = useState([]);
+  
+  // Estados para dados e filtros
+  const [agendamentos, setAgendamentos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
-  const [filtroStatus, setFiltroStatus] = useState('todas');
-  const [filtroData, setFiltroData] = useState('todas');
+  const [filtros, setFiltros] = useState({
+    status: 'todas',
+    periodo: 'todas',
+    data_inicio: '',
+    data_fim: '',
+    ordenacao: 'data_desc'
+  });
+  const [filtrosDisponiveis, setFiltrosDisponiveis] = useState({
+    status: [],
+    periodos: [],
+    ordenacao: []
+  });
+  const [estatisticas, setEstatisticas] = useState({});
+  const [paginacao, setPaginacao] = useState({
+    pagina_atual: 1,
+    total_paginas: 1,
+    total_registros: 0,
+    limite: 50
+  });
+
+  // Carregar filtros disponíveis
+  useEffect(() => {
+    const carregarFiltros = async () => {
+      try {
+        const response = await api.get('/api/v1/historico/filtros');
+        if (response.status === 200 && response.data.success) {
+          setFiltrosDisponiveis(response.data.data);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar filtros:', error);
+      }
+    };
+
+    carregarFiltros();
+  }, []);
 
   // Carregar histórico de sessões
   useEffect(() => {
     const carregarHistorico = async () => {
       try {
+        setLoading(true);
+        setErro('');
+
         const cliente_id = localStorage.getItem('cliente_id');
         if (!cliente_id) {
           setErro('Cliente não autenticado');
@@ -24,14 +63,30 @@ const HistoricoSessoes = () => {
           return;
         }
 
-        const response = await api.get(`/sessoes/cliente/${cliente_id}`);
-        if (response.status === 200) {
-          setSessoes(response.data);
+        // Construir parâmetros da query
+        const params = new URLSearchParams({
+          cliente_id: cliente_id,
+          ...filtros,
+          pagina: paginacao.pagina_atual,
+          limite: paginacao.limite
+        });
+
+        const response = await api.get(`/api/v1/historico?${params}`);
+        
+        if (response.status === 200 && response.data.success) {
+          const data = response.data.data;
+          setAgendamentos(data.agendamentos);
+          setEstatisticas(data.estatisticas);
+          setPaginacao(data.paginacao);
+        } else {
+          setErro('Erro ao carregar dados do histórico');
         }
       } catch (error) {
         console.error('Erro ao carregar histórico:', error);
         if (error.response?.status === 404) {
-          setErro('Nenhuma sessão encontrada');
+          setErro('Endpoint de histórico não encontrado');
+        } else if (error.response?.status === 400) {
+          setErro('Parâmetros inválidos para busca');
         } else {
           setErro('Erro ao carregar histórico de sessões');
         }
@@ -41,64 +96,81 @@ const HistoricoSessoes = () => {
     };
 
     carregarHistorico();
-  }, [navigate]);
+  }, [navigate, filtros, paginacao.pagina_atual]);
 
-  // ✅ PADRONIZADO: Usando tema Seenti oficial
-  // Removido hardcoded colors - usando classes CSS do tema
+  // Carregar estatísticas
+  useEffect(() => {
+    const carregarEstatisticas = async () => {
+      try {
+        const cliente_id = localStorage.getItem('cliente_id');
+        if (!cliente_id) return;
 
-  // Filtrar sessões
-  const sessoesFiltradas = sessoes.filter(sessao => {
-    // Filtro por status
-    if (filtroStatus !== 'todas' && sessao.status !== filtroStatus) {
-      return false;
-    }
-    
-    // Filtro por data
-    if (filtroData !== 'todas') {
-      const hoje = new Date();
-      const dataSessao = new Date(sessao.data_agendada);
-      
-      switch (filtroData) {
-        case 'hoje':
-          return dataSessao.toDateString() === hoje.toDateString();
-        case 'semana':
-          const umaSemanaAtras = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000);
-          return dataSessao >= umaSemanaAtras;
-        case 'mes':
-          const umMesAtras = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
-          return dataSessao >= umMesAtras;
-        default:
-          return true;
+        const params = new URLSearchParams({ cliente_id });
+        const response = await api.get(`/api/v1/historico/estatisticas?${params}`);
+        
+        if (response.status === 200 && response.data.success) {
+          setEstatisticas(response.data.data.resumo);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar estatísticas:', error);
       }
-    }
-    
-    return true;
-  });
+    };
+
+    carregarEstatisticas();
+  }, []);
+
+  // Atualizar filtros
+  const atualizarFiltros = (novosFiltros) => {
+    setFiltros(prev => ({ ...prev, ...novosFiltros }));
+    setPaginacao(prev => ({ ...prev, pagina_atual: 1 })); // Reset para primeira página
+  };
+
+  // Mudar página
+  const mudarPagina = (novaPagina) => {
+    setPaginacao(prev => ({ ...prev, pagina_atual: novaPagina }));
+  };
 
   // Formatar data
-  const formatarData = (dataString) => {
-    const data = new Date(dataString);
-    return data.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatarData = (dataString, horaString) => {
+    if (!dataString) return 'N/A';
+    
+    try {
+      let data;
+      if (typeof dataString === 'object' && dataString.$date) {
+        // Formato MongoDB ISO
+        data = new Date(dataString.$date);
+      } else {
+        data = new Date(dataString);
+      }
+      
+      const dataFormatada = data.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      
+      if (horaString) {
+        return `${dataFormatada} ${horaString}`;
+      }
+      
+      return dataFormatada;
+    } catch (error) {
+      console.error('Erro ao formatar data:', error);
+      return 'N/A';
+    }
   };
 
   // Formatar status
   const formatarStatus = (status) => {
     const statusMap = {
-      'agendada': { label: 'Agendada', cor: 'bg-blue-100 text-blue-800' },
-      'confirmada': { label: 'Confirmada', cor: 'bg-green-100 text-green-800' },
-      'realizada': { label: 'Realizada', cor: 'bg-purple-100 text-purple-800' },
-      'cancelada': { label: 'Cancelada', cor: 'bg-red-100 text-red-800' },
-      'remarcada': { label: 'Remarcada', cor: 'bg-yellow-100 text-yellow-800' }
+      'pendente': { label: 'Pendente', cor: 'text-yellow-600 bg-yellow-100' },
+      'confirmada': { label: 'Confirmada', cor: 'text-blue-600 bg-blue-100' },
+      'realizada': { label: 'Realizada', cor: 'text-green-600 bg-green-100' },
+      'cancelada': { label: 'Cancelada', cor: 'text-red-600 bg-red-100' },
+      'rejeitada': { label: 'Rejeitada', cor: 'text-red-600 bg-red-100' }
     };
     
-    const statusInfo = statusMap[status] || { label: status, cor: 'bg-gray-100 text-gray-800' };
-    
+    const statusInfo = statusMap[status] || { label: status, cor: 'text-gray-600 bg-gray-100' };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.cor}`}>
         {statusInfo.label}
@@ -106,214 +178,271 @@ const HistoricoSessoes = () => {
     );
   };
 
-  // Calcular duração da sessão
-  const calcularDuracao = (duracaoMinutos) => {
-    if (duracaoMinutos < 60) {
-      return `${duracaoMinutos} min`;
-    }
-    const horas = Math.floor(duracaoMinutos / 60);
-    const minutos = duracaoMinutos % 60;
-    return `${horas}h${minutos > 0 ? ` ${minutos}min` : ''}`;
+  // Formatar valor
+  const formatarValor = (valor) => {
+    if (!valor) return 'N/A';
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(valor);
   };
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto mt-8 p-6 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="seenti-text-secondary">Carregando histórico...</p>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Carregando histórico...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto mt-8 p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            {/* Botão Voltar */}
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Header principal */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg p-6 mb-6">
+          {/* ✅ CORRIGIDO: Header com ícones na mesma linha - CSS EXPLÍCITO */}
+          <div className="flex items-center justify-between mb-4" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            {/* ✅ Ícone de casa (Voltar ao Perfil) */}
             <button
               onClick={() => navigate('/perfil')}
-              className="seenti-btn-secondary px-4 py-2 rounded-lg hover:seenti-hover-bg-secondary-dark transition-all duration-200 flex items-center space-x-2"
+              className="text-white p-2 rounded-lg hover:bg-white/20 transition-all duration-200 flex items-center space-x-2"
+              title="Voltar ao Perfil"
+              style={{ flexShrink: 0, border: 'none', background: 'transparent' }}
             >
-              <span>←</span>
-              <span>Voltar ao Perfil</span>
+              <span className="text-xl">🏠</span>
             </button>
             
-            <div className="text-center">
-              <h2 className="text-3xl font-bold mb-2 seenti-text-primary">
-                📅 Histórico de Sessões
-              </h2>
-              <p className="seenti-text-secondary">Acompanhe todas as suas sessões de massoterapia</p>
+            {/* ✅ Título centralizado */}
+            <div className="text-center flex-1" style={{ flex: 1, textAlign: 'center' }}>
+              <h1 className="font-cliente-destaque text-3xl text-white mb-2">
+                📊 Histórico de Sessões
+              </h1>
+              <p className="font-info-secundaria text-blue-100">
+                Acompanhe todas as suas sessões de massoterapia
+              </p>
+            </div>
+            
+            {/* ✅ Ícones globais na mesma linha */}
+            <div className="flex-shrink-0" style={{ flexShrink: 0 }}>
+              <IconesGlobais 
+                posicao="direita" 
+                tamanho="normal" 
+                mostrarBadge={true}
+              />
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Filtros */}
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <label className="block text-sm font-medium seenti-text-primary mb-2">
-              Status
-            </label>
-            <select
-              value={filtroStatus}
-              onChange={(e) => setFiltroStatus(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="todas">Todas as sessões</option>
-              <option value="agendada">Agendadas</option>
-              <option value="confirmada">Confirmadas</option>
-              <option value="realizada">Realizadas</option>
-              <option value="cancelada">Canceladas</option>
-              <option value="remarcada">Remarcadas</option>
-            </select>
+        {/* Filtros - Layout Compacto */}
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Status */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Status:</label>
+              <select
+                value={filtros.status}
+                onChange={(e) => atualizarFiltros({ status: e.target.value })}
+                className="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                {filtrosDisponiveis.status.map(status => (
+                  <option key={status.valor} value={status.valor}>
+                    {status.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Período */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Período:</label>
+              <select
+                value={filtros.periodo}
+                onChange={(e) => atualizarFiltros({ periodo: e.target.value })}
+                className="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                {filtrosDisponiveis.periodos.map(periodo => (
+                  <option key={periodo.valor} value={periodo.valor}>
+                    {periodo.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Data Início */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Início:</label>
+              <input
+                type="date"
+                value={filtros.data_inicio}
+                onChange={(e) => atualizarFiltros({ data_inicio: e.target.value })}
+                className="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+            </div>
+
+            {/* Data Fim */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Fim:</label>
+              <input
+                type="date"
+                value={filtros.data_fim}
+                onChange={(e) => atualizarFiltros({ data_fim: e.target.value })}
+                className="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+            </div>
+
+            {/* Ordenação */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Ordenar:</label>
+              <select
+                value={filtros.ordenacao}
+                onChange={(e) => atualizarFiltros({ ordenacao: e.target.value })}
+                className="px-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                {filtrosDisponiveis.ordenacao.map(ord => (
+                  <option key={ord.valor} value={ord.valor}>
+                    {ord.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          
-          <div className="flex-1">
-            <label className="block text-sm font-medium seenti-text-primary mb-2">
-              Período
-            </label>
-            <select
-              value={filtroData}
-              onChange={(e) => setFiltroData(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="todas">Todas as datas</option>
-              <option value="hoje">Hoje</option>
-              <option value="semana">Última semana</option>
-              <option value="mes">Último mês</option>
-            </select>
+        </div>
+
+        {/* Lista de Agendamentos */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="font-cta text-lg text-gray-800">
+              Sessões ({paginacao.total_registros} total)
+            </h3>
           </div>
-        </div>
-      </div>
 
-      {/* Mensagens de erro ou sucesso */}
-      {erro && (
-        <div className="text-red-600 mb-6 p-4 bg-red-50 rounded-lg border border-red-200">
-          ⚠️ {erro}
-        </div>
-      )}
-
-      {/* Lista de sessões */}
-      {sessoesFiltradas.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-gray-400 text-6xl mb-4">📅</div>
-          <h3 className="text-xl font-medium seenti-text-secondary mb-2">
-            {erro ? 'Nenhuma sessão encontrada' : 'Nenhuma sessão para os filtros selecionados'}
-          </h3>
-          <p className="text-gray-500">
-            {erro ? 'Você ainda não possui sessões agendadas.' : 'Tente ajustar os filtros para ver mais sessões.'}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {sessoesFiltradas.map((sessao) => (
-            <div
-              key={sessao._id}
-              className="border border-gray-200 rounded-lg p-6 bg-white hover:shadow-md transition-shadow"
-            >
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                {/* Informações principais */}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="text-lg font-semibold seenti-text-primary mb-1">
-                        {sessao.tipo_massagem || 'Sessão de Massoterapia'}
-                      </h3>
-                      <p className="seenti-text-secondary">
-                        {sessao.terapeuta?.nome || 'Terapeuta não definido'}
-                      </p>
-                    </div>
-                    {formatarStatus(sessao.status)}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium seenti-text-primary">📅 Data:</span>
-                      <p className="seenti-text-secondary">{formatarData(sessao.data_agendada)}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium seenti-text-primary">⏱️ Duração:</span>
-                      <p className="seenti-text-secondary">
-                        {sessao.duracao ? calcularDuracao(sessao.duracao) : 'Não definida'}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="font-medium seenti-text-primary">💰 Valor:</span>
-                      <p className="seenti-text-secondary">
-                        {sessao.valor ? `R$ ${sessao.valor.toFixed(2)}` : 'Não definido'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Ações */}
-                <div className="flex flex-col sm:flex-row gap-2">
-                  {sessao.status === 'agendada' && (
-                    <>
-                      <button
-                        onClick={() => navigate(`/agendamento/editar/${sessao._id}`)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                      >
-                        ✏️ Editar
-                      </button>
-                      <button
-                        onClick={() => navigate(`/agendamento/cancelar/${sessao._id}`)}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-                      >
-                        ❌ Cancelar
-                      </button>
-                    </>
-                  )}
-                  
-                  {sessao.status === 'realizada' && (
-                    <button
-                      onClick={() => navigate(`/avaliacao/${sessao._id}`)}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-                    >
-                      ⭐ Avaliar
-                    </button>
-                  )}
-                </div>
+          {erro ? (
+            <div className="p-6 text-center">
+              <div className="text-red-600 text-lg mb-2">⚠️ {erro}</div>
+              <p className="font-info-secundaria text-gray-600">Não foi possível carregar o histórico de sessões.</p>
+            </div>
+          ) : agendamentos.length === 0 ? (
+            <div className="p-6 text-center">
+              <div className="text-gray-500 text-lg mb-2">📅</div>
+              <p className="font-info-secundaria text-gray-600">Nenhuma sessão encontrada.</p>
+              <p className="font-info-secundaria text-gray-500 text-sm">Você ainda não possui sessões agendadas.</p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Data/Hora
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tipo
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Duração
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Valor
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Observações
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {agendamentos.map((agendamento) => (
+                      <tr key={agendamento._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatarData(agendamento.data_solicitada, agendamento.hora_solicitada)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {formatarStatus(agendamento.status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          Massoterapia
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          60 min
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          R$ 80,00
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          <div className="max-w-xs">
+                            {agendamento.observacoes || 'N/A'}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
 
-              {/* Observações */}
-              {sessao.observacoes && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <span className="font-medium seenti-text-primary text-sm">📝 Observações:</span>
-                  <p className="seenti-text-secondary text-sm mt-1">{sessao.observacoes}</p>
-                </div>
-              )}
-
-              {/* Feedback da sessão */}
-              {sessao.feedback && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <span className="font-medium seenti-text-primary text-sm">💬 Seu feedback:</span>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex text-yellow-400">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span key={star}>
-                          {star <= (sessao.feedback.avaliacao || 0) ? '★' : '☆'}
-                        </span>
-                      ))}
+              {/* Paginação */}
+              {paginacao.total_paginas > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-cta text-gray-700">
+                      Mostrando página {paginacao.pagina_atual} de {paginacao.total_paginas}
                     </div>
-                    <span className="seenti-text-secondary text-sm">
-                      {sessao.feedback.avaliacao}/5
-                    </span>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => mudarPagina(paginacao.pagina_atual - 1)}
+                        disabled={paginacao.pagina_atual === 1}
+                        className="px-3 py-2 text-sm font-cta text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Anterior
+                      </button>
+                      <button
+                        onClick={() => mudarPagina(paginacao.pagina_atual + 1)}
+                        disabled={paginacao.pagina_atual === paginacao.total_paginas}
+                        className="px-3 py-2 text-sm font-cta text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Próxima
+                      </button>
+                    </div>
                   </div>
-                  {sessao.feedback.comentario && (
-                    <p className="seenti-text-secondary text-sm mt-1">{sessao.feedback.comentario}</p>
-                  )}
                 </div>
               )}
-            </div>
-          ))}
+            </>
+          )}
         </div>
-      )}
 
-
+        {/* Estatísticas - Movidas para o final */}
+        {estatisticas && Object.keys(estatisticas).length > 0 && (
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mt-6">
+            <h3 className="font-cta text-lg text-gray-800 mb-4">📊 Resumo das Sessões</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="font-cliente-destaque text-2xl text-blue-600">{estatisticas.total_sessoes || 0}</div>
+                <div className="font-info-secundaria text-sm text-gray-600">Total de Sessões</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="font-cliente-destaque text-2xl text-green-600">{estatisticas.sessoes_realizadas || 0}</div>
+                <div className="font-info-secundaria text-sm text-gray-600">Realizadas</div>
+              </div>
+              <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                <div className="font-cliente-destaque text-2xl text-yellow-600">{estatisticas.sessoes_pendentes || 0}</div>
+                <div className="font-info-secundaria text-sm text-gray-600">Pendentes</div>
+              </div>
+              <div className="text-center p-4 bg-red-50 rounded-lg">
+                <div className="font-cliente-destaque text-2xl text-red-600">{estatisticas.sessoes_canceladas || 0}</div>
+                <div className="font-info-secundaria text-sm text-gray-600">Canceladas</div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

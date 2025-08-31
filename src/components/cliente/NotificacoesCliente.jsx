@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { brand } from '@white/config/brandConfig';
 import api from '../../services/api';
+import IconesGlobais from '../globais/IconesGlobais';
 
 const NotificacoesCliente = () => {
   const navigate = useNavigate();
@@ -217,40 +218,51 @@ const NotificacoesCliente = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              {/* Botão Voltar */}
-              <button
-                onClick={() => navigate('/perfil')}
-                className="seenti-btn-secondary flex items-center space-x-2"
-              >
-                <span>←</span>
-                <span>Voltar ao Perfil</span>
-              </button>
-              
-              <div>
-                <h1 className="text-3xl font-bold seenti-text-primary mb-2">
-                  🔔 Notificações
-                </h1>
-                <p className="seenti-text-secondary">
-                  {totalNaoLidas > 0 
-                    ? `${totalNaoLidas} notificação${totalNaoLidas > 1 ? 'es' : ''} não lida${totalNaoLidas > 1 ? 's' : ''}`
-                    : 'Todas as notificações foram lidas'
-                  }
-                </p>
-              </div>
+          {/* ✅ CORRIGIDO: Header com ícones na mesma linha - CSS EXPLÍCITO */}
+          <div className="flex items-center justify-between mb-4" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            {/* ✅ Ícone de casa (Voltar ao Perfil) */}
+            <button
+              onClick={() => navigate('/perfil')}
+              className="text-seenti-primary p-2 rounded-lg hover:bg-seenti-primary/10 transition-all duration-200 flex items-center space-x-2"
+              title="Voltar ao Perfil"
+              style={{ flexShrink: 0, border: 'none', background: 'transparent' }}
+            >
+              <span className="text-xl">🏠</span>
+            </button>
+            
+            {/* ✅ Título centralizado com hierarquia tipográfica */}
+            <div className="text-center flex-1" style={{ flex: 1, textAlign: 'center' }}>
+              <h1 className="font-cliente-destaque seenti-text-primary mb-2">
+                🔔 Notificações
+              </h1>
+              <p className="font-info-secundaria seenti-text-secondary">
+                {totalNaoLidas > 0 
+                  ? `${totalNaoLidas} notificação${totalNaoLidas > 1 ? 'es' : ''} não lida${totalNaoLidas > 1 ? 's' : ''}`
+                  : 'Todas as notificações foram lidas'
+                }
+              </p>
             </div>
             
-            <div className="flex space-x-3">
-              {totalNaoLidas > 0 && (
-                <button
-                  onClick={marcarTodasComoLidas}
-                  className="px-4 py-2 seenti-btn-secondary focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
-                >
-                  ✅ Marcar todas como lidas
-                </button>
-              )}
+            {/* ✅ Ícones globais na mesma linha */}
+            <div className="flex-shrink-0" style={{ flexShrink: 0 }}>
+              <IconesGlobais 
+                posicao="direita" 
+                tamanho="normal" 
+                mostrarBadge={true}
+              />
             </div>
+          </div>
+          
+          {/* ✅ Botão Marcar todas como lidas centralizado */}
+          <div className="flex justify-center">
+            {totalNaoLidas > 0 && (
+              <button
+                onClick={marcarTodasComoLidas}
+                className="font-cta px-4 py-2 seenti-btn-secondary focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+              >
+                ✅ Marcar todas como lidas
+              </button>
+            )}
           </div>
         </div>
 
@@ -272,10 +284,10 @@ const NotificacoesCliente = () => {
           {notificacoes.length === 0 ? (
             <div className="p-8 text-center">
               <div className="text-6xl mb-4">🔔</div>
-              <h3 className="text-lg font-medium seenti-text-primary mb-2">
+              <h3 className="font-cta text-lg seenti-text-primary mb-2">
                 Nenhuma notificação
               </h3>
-              <p className="seenti-text-secondary">
+              <p className="font-info-secundaria seenti-text-secondary">
                 Você não tem notificações no momento.
               </p>
             </div>
@@ -304,18 +316,18 @@ const NotificacoesCliente = () => {
                         )}
                       </div>
                       
-                      <h3 className="text-lg font-medium seenti-text-primary mb-1">
+                      <h3 className="font-cta text-lg seenti-text-primary mb-1">
                         {notificacao.titulo}
                       </h3>
                       
-                      <p className="seenti-text-secondary mb-3">
+                      <p className="font-info-secundaria seenti-text-secondary mb-3">
                         {notificacao.mensagem}
                       </p>
                       
                       <div className="flex items-center space-x-4 text-sm seenti-text-secondary">
-                        <span>📅 {formatarData(notificacao.criado_em)}</span>
+                        <span className="font-info-secundaria">📅 {formatarData(notificacao.criado_em)}</span>
                         {notificacao.lida_em && (
-                          <span>👁️ Lida em {formatarData(notificacao.lida_em)}</span>
+                          <span className="font-info-secundaria">👁️ Lida em {formatarData(notificacao.lida_em)}</span>
                         )}
                       </div>
                     </div>
